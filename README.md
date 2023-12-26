@@ -38,9 +38,9 @@ Post content should look like:
 
 ```JSON
 {
-    "mail": "user@mail.com",
-    "subject": "my subject",
-    "text": "<html><strong>Hello</strong> we support html and plain text messages :-)</html>"
+  "mail": "user@mail.com",
+  "subject": "my subject",
+  "text": "<html><strong>Hello</strong>, we support html and text mails :-)</html>"
 }
 ```
 Post request to: `http://127.0.0.1:8989/mail/contact/`
