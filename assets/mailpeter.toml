@@ -1,0 +1,15 @@
+log_keep_count = 10
+log_level = "debug"
+log_size_mb = 1
+log_to_file = false
+
+[mail]
+smtp = ""
+port = 465
+user = ""
+password = ""
+starttls = false
+
+[[mail.recipients]]
+direction = "contact"
+mails = []

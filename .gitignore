@@ -1,1 +1,6 @@
 /target
+
+mailpeter.toml
+!assets/mailpeter.toml
+*.log
+*.gz

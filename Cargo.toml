@@ -1,8 +1,30 @@
 [package]
-name = "RustContact"
+name = "mailpeter"
+description = "Simple mailer and API for contact forms"
+readme = "README.md"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+repository = "https://github.com/jb-alvarado/RustContact"
+authors = ["Jonathan Baecker"]
 
 [dependencies]
+actix-web = "4"
+clap = { version = "4.3", features = ["derive"] }
+derive_more = "0.99"
+fast_log = { version = "1.6", features = ["gzip"] }
+fastdate = "0.3"
+file-rotate = "0.7"
+html_parser = "0.7"
+lazy_static = "1.4"
+lettre = { version = "0.11", features = [
+    "builder",
+    "tokio1-rustls-tls",
+    "smtp-transport",
+], default-features = false }
+log = "0.4"
+regex = "1.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+toml = "0.8"
