@@ -5,7 +5,7 @@ readme = "README.md"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/jb-alvarado/RustContact"
+repository = "https://github.com/jb-alvarado/mailpeter"
 authors = ["Jonathan Baecker"]
 
 [dependencies]
