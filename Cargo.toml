@@ -8,6 +8,11 @@ license = "MIT"
 repository = "https://github.com/jb-alvarado/mailpeter"
 authors = ["Jonathan Baecker"]
 
+[profile.release]
+opt-level = 3
+strip = true
+lto = true
+
 [dependencies]
 actix-web = "4"
 clap = { version = "4.3", features = ["derive"] }

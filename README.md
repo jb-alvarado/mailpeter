@@ -1,6 +1,6 @@
 # mailpeter
 
-Simple mailer and API for contact forms
+Simple mailer and API for contact forms.
 
 **Warning: This project is in a very early stage, do not use it in production!**
 
