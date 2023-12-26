@@ -23,7 +23,7 @@ impl RecordFormat for LogFormat {
             Command::CommandRecord => {
                 let now = if CONFIG.log_to_file {
                     format!(
-                        "[{:27}] ",
+                        "[{: <29}] ",
                         match self.time_type {
                             TimeType::Local => fastdate::DateTime::from(arg.now)
                                 .set_offset(fastdate::offset_sec())
