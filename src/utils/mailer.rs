@@ -42,7 +42,7 @@ impl Default for Msg {
             direction: "contact".to_string(),
             mail: "my@mail.org".to_string(),
             subject: "My Subject".to_string(),
-            text: "my Text".to_string(),
+            text: "My Text".to_string(),
         }
     }
 }
