@@ -18,15 +18,15 @@ jobs:
       - name: Set Build Tools and update Rust
         run: |
           rustup update stable
-          rustup component add rustfmt
-          rustup component add clippy
-          cargo install cargo-deb
-          cargo install cargo-generate-rpm
 
       - name: Build on Linux amd64
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'amd64' }}
         run: |
           rustup target add x86_64-unknown-linux-musl
+          rustup component add rustfmt
+          rustup component add clippy
+          cargo install cargo-deb
+          cargo install cargo-generate-rpm
           cargo test --all-features
           cargo clippy --all-features --all-targets -- --deny warnings
           cargo fmt --all -- --check
@@ -40,6 +40,8 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' }}
         run: |
           rustup target add aarch64-unknown-linux-gnu
+          cargo install cargo-deb
+          cargo install cargo-generate-rpm
           cargo test --all-features
           cargo clippy --all-features --all-targets -- --deny warnings
           cargo fmt --all -- --check
@@ -48,3 +50,4 @@ jobs:
           tar -czvf "mailpeter-${{github.ref_name}}_aarch64-unknown-linux-gnu.tar.gz" assets LICENSE README.md mailpeter
           rm -f mailpeter
           cargo deb --target=aarch64-unknown-linux-gnu -o mailpeter_${{github.ref_name}}-1_arm64.deb
+
