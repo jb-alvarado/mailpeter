@@ -86,6 +86,7 @@ jobs:
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
+        if: ${{ hashFiles('release/') != '' }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: release/*
