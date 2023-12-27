@@ -80,9 +80,9 @@ jobs:
           cp ./target/release/mailpeter.exe .
           zip -r "mailpeter-${{github.ref_name}}_x86_64.zip" assets LICENSE README.md mailpeter.exe
 
-      - name: Build on Windows arm64
-        if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'arm64' }}
-        run: |
-          cargo build --release
-          cp ./target/release/mailpeter.exe .
-          zip -r "mailpeter-${{github.ref_name}}_aarch64.zip" assets LICENSE README.md mailpeter.exe
+      # - name: Build on Windows arm64
+      #   if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'arm64' }}
+      #   run: |
+      #     cargo build --release
+      #     cp ./target/release/mailpeter.exe .
+      #     zip -r "mailpeter-${{github.ref_name}}_aarch64.zip" assets LICENSE README.md mailpeter.exe
