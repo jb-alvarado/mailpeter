@@ -51,6 +51,8 @@ jobs:
           cargo install cargo-deb
           cargo install cargo-generate-rpm
 
+          echo -e '[target.aarch64-unknown-linux-musl]\nlinker = "aarch64-linux-gnu-gcc"\nrustflags = [ "-C", "target-feature=+crt-static", "-C", "link-arg=-lgcc" ]' >  ~/.cargo/config
+
           cargo build --release --target=aarch64-unknown-linux-musl
 
           cp ./target/aarch64-unknown-linux-musl/release/mailpeter .
