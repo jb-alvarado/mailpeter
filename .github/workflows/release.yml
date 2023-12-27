@@ -22,9 +22,10 @@ jobs:
       - name: Build on Linux amd64
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'amd64' }}
         run: |
-          rustup target add x86_64-unknown-linux-musl
+          apt update && apt install -y musl-tools
           rustup component add rustfmt
           rustup component add clippy
+          rustup target add x86_64-unknown-linux-musl
           cargo install cargo-deb
           cargo install cargo-generate-rpm
           cargo test --all-features
@@ -35,19 +36,19 @@ jobs:
           tar -czvf "mailpeter-${{github.ref_name}}_x86_64-unknown-linux-musl.tar.gz" assets LICENSE README.md mailpeter
           rm -f mailpeter
           cargo deb --target=x86_64-unknown-linux-musl -o mailpeter_${{github.ref_name}}-1_amd64.deb
+          cargo generate-rpm --target=x86_64-unknown-linux-musl -o mailpeter-${{github.ref_name}}-1.x86_64.rpm
 
       - name: Build on Linux arm64
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' }}
         run: |
+          apt update && apt install -y binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
           rustup target add aarch64-unknown-linux-gnu
           cargo install cargo-deb
           cargo install cargo-generate-rpm
-          cargo test --all-features
-          cargo clippy --all-features --all-targets -- --deny warnings
-          cargo fmt --all -- --check
           cargo build --release --target=aarch64-unknown-linux-gnu
           cp ./target/aarch64-unknown-linux-gnu/release/mailpeter .
           tar -czvf "mailpeter-${{github.ref_name}}_aarch64-unknown-linux-gnu.tar.gz" assets LICENSE README.md mailpeter
           rm -f mailpeter
           cargo deb --target=aarch64-unknown-linux-gnu -o mailpeter_${{github.ref_name}}-1_arm64.deb
+          cargo generate-rpm --target=aarch64-unknown-linux-gnu -o mailpeter-${{github.ref_name}}-1.x86_64.rpm
 
