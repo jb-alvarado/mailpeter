@@ -13,6 +13,8 @@ pub struct Config {
     pub log_level: LevelFilter,
     pub log_size_mb: usize,
     pub log_to_file: bool,
+    pub reverse_proxy_ip: String,
+    pub limit_request_seconds: u64,
     pub mail: Mail,
 }
 

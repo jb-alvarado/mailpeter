@@ -4,3 +4,6 @@ mailpeter.toml
 !assets/mailpeter.toml
 *.log
 *.gz
+*.deb
+*.rpm
+*.zip

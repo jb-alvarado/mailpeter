@@ -13,6 +13,8 @@ log_keep_count = 10
 log_level = "info"
 log_size_mb = 1
 log_to_file = true
+reverse_proxy_ip = "127.0.0.1"
+limit_request_seconds = 30
 
 [mail]
 smtp = "smtp.example.org"

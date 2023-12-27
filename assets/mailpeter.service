@@ -1,0 +1,14 @@
+[Unit]
+Description=Simple mailer and API for contact forms
+After=network.target remote-fs.target
+
+[Service]
+ExecStart=/usr/bin/mailpeter -l 127.0.0.1:8989
+Restart=always
+StartLimitInterval=20
+RestartSec=1
+KillMode=mixed
+User=manager-api
+
+[Install]
+WantedBy=multi-user.target

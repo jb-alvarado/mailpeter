@@ -73,3 +73,9 @@ impl From<lettre::address::AddressError> for ServiceError {
         ServiceError::Conflict(err.to_string())
     }
 }
+
+impl From<std::net::AddrParseError> for ServiceError {
+    fn from(err: std::net::AddrParseError) -> ServiceError {
+        ServiceError::Conflict(err.to_string())
+    }
+}
