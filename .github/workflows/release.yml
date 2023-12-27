@@ -47,11 +47,14 @@ jobs:
       - name: Build on Linux arm64
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' }}
         run: |
-          sudo apt update && sudo apt install -y gcc musl musl-dev musl-tools
+          sudo apt update && sudo apt install -y musl musl-dev musl-tools
           cargo install cargo-deb
           cargo install cargo-generate-rpm
 
-          echo -e '[target.aarch64-unknown-linux-musl]\nlinker = "aarch64-linux-gnu-gcc"\nrustflags = [ "-C", "target-feature=+crt-static", "-C", "link-arg=-lgcc" ]' >  ~/.cargo/config
+          # export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-gnu-gcc
+          # export CC=aarch64-linux-gnu-gcc
+
+          echo -e '[target.aarch64-unknown-linux-musl]\nlinker = "gcc"\nrustflags = [ "-C", "target-feature=+crt-static", "-C", "link-arg=-lgcc" ]' >  ~/.cargo/config
 
           cargo build --release --target=aarch64-unknown-linux-musl
 
