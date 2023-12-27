@@ -31,7 +31,7 @@ jobs:
           cargo clippy --all-features --all-targets -- --deny warnings
           cargo fmt --all -- --check
           cargo build --release --target=x86_64-unknown-linux-musl
-          cp ./target/${target}/release/mailpeter .
+          cp ./target/x86_64-unknown-linux-musl/release/mailpeter .
           tar -czvf "mailpeter-${{github.ref_name}}_x86_64-unknown-linux-musl.tar.gz" assets LICENSE README.md mailpeter
           rm -f mailpeter
           cargo deb --target=x86_64-unknown-linux-musl -o mailpeter_${{github.ref_name}}-1_amd64.deb
@@ -44,7 +44,7 @@ jobs:
           cargo clippy --all-features --all-targets -- --deny warnings
           cargo fmt --all -- --check
           cargo build --release --target=aarch64-unknown-linux-gnu
-          cp ./target/${target}/release/mailpeter .
+          cp ./target/aarch64-unknown-linux-gnu/release/mailpeter .
           tar -czvf "mailpeter-${{github.ref_name}}_aarch64-unknown-linux-gnu.tar.gz" assets LICENSE README.md mailpeter
           rm -f mailpeter
           cargo deb --target=aarch64-unknown-linux-gnu -o mailpeter_${{github.ref_name}}-1_arm64.deb
