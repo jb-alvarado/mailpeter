@@ -18,7 +18,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          targets: x86_64-unknown-linux-musl, aarch64-unknown-linux-gnu
+          targets: x86_64-unknown-linux-musl, aarch64-unknown-linux-musl
           components: clippy
       - name: Set Build Tools and update Rust
         run: |
@@ -46,26 +46,43 @@ jobs:
       - name: Build on Linux arm64
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' }}
         run: |
-          sudo apt update && sudo apt install -y binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-
-          export CMAKE_SYSTEM_NAME=Linux
-          export TARGET=aarch64-linux-gnu
-          export TARGET_AR=aarch64-linux-gnu-ar
-          export TARGET_CC=aarch64-linux-gnu-gcc
-          export TARGET_CXX=aarch64-linux-gnu-g++
-          export TARGET_RANLIB=aarch64-linux-gnu-ranlib
-          export TARGET_CPP=aarch64-linux-gnu-cpp
-          export TARGET_LD=aarch64-linux-gnu-ld
-          export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=$TARGET_CC
+          sudo apt update && sudo apt install -y musl-tools
 
           cargo install cargo-deb
           cargo install cargo-generate-rpm
 
-          cargo build --release --target=aarch64-unknown-linux-gnu
+          cargo build --release --target=aarch64-unknown-linux-musl
 
-          cp ./target/aarch64-unknown-linux-gnu/release/mailpeter .
-          tar -czvf "mailpeter-${{github.ref_name}}_aarch64-unknown-linux-gnu.tar.gz" assets LICENSE README.md mailpeter
+          cp ./target/aarch64-unknown-linux-musl/release/mailpeter .
+          tar -czvf "mailpeter-${{github.ref_name}}_aarch64-unknown-linux-musl.tar.gz" assets LICENSE README.md mailpeter
           rm -f mailpeter
-          cargo deb --target=aarch64-unknown-linux-gnu -o mailpeter_${{github.ref_name}}-1_arm64.deb
-          cargo generate-rpm --target=aarch64-unknown-linux-gnu -o mailpeter-${{github.ref_name}}-1.x86_64.rpm
+          cargo deb --target=aarch64-unknown-linux-musl -o mailpeter_${{github.ref_name}}-1_arm64.deb
+          cargo generate-rpm --target=aarch64-unknown-linux-musl -o mailpeter-${{github.ref_name}}-1.x86_64.rpm
 
+      - name: Build on Windows amd64
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          cargo build --release
+          cp ./target/release/mailpeter.exe .
+          zip -r "mailpeter-${{github.ref_name}}_x86_64.zip" assets LICENSE README.md mailpeter.exe
+
+      - name: Build on Windows arm64
+        if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'arm64' }}
+        run: |
+          cargo build --release
+          cp ./target/release/mailpeter.exe .
+          zip -r "mailpeter-${{github.ref_name}}_aarch64.zip" assets LICENSE README.md mailpeter.exe
+
+      - name: Build on MacOS amd64
+        if: ${{ matrix.os == 'macOS-latest' && matrix.arch == 'amd64' }}
+        run: |
+          cargo build --release
+          cp ./target/release/mailpeter .
+          zip -r "mailpeter-${{github.ref_name}}_x86_64.zip" assets LICENSE README.md mailpeter
+
+      - name: Build on MacOS arm64
+        if: ${{ matrix.os == 'macOS-latest' && matrix.arch == 'arm64' }}
+        run: |
+          cargo build --release
+          cp ./target/release/mailpeter .
+          zip -r "mailpeter-${{github.ref_name}}_aarch64.zip" assets LICENSE README.md mailpeter
