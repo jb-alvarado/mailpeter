@@ -11,7 +11,7 @@ pub async fn post_mail(
     direction: web::Path<String>,
     mut data: web::Json<Msg>,
 ) -> Result<impl Responder, ServiceError> {
-    data.direction = direction.into_inner();
+    data.direction = Some(direction.into_inner());
 
     match send(data.into_inner()).await {
         Ok(_) => Ok("Send success!"),

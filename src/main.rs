@@ -1,4 +1,8 @@
-use std::{net::IpAddr, str::FromStr};
+use std::{
+    io::{self, BufRead},
+    net::IpAddr,
+    str::FromStr,
+};
 
 use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{middleware, web, App, HttpServer};
@@ -9,12 +13,15 @@ use log::{error, info};
 pub mod api;
 pub mod utils;
 
+use std::process::exit;
+
 use api::routes::post_mail;
 use utils::{
     arg_parser::Args,
     config::{read_config, Config},
     ip_extrator::IpExtractor,
     logging::init_logger,
+    mailer::{send, Msg},
 };
 
 lazy_static! {
@@ -25,6 +32,40 @@ lazy_static! {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     init_logger()?;
+
+    if let Some(subject) = &ARGS.subject {
+        match &ARGS.recipient {
+            Some(recipient) => {
+                if let Some(text) = &ARGS.text {
+                    let msg = Msg::new(None, recipient.clone(), subject.clone(), text.clone());
+
+                    send(msg).await?;
+                } else {
+                    let stdin = io::stdin();
+                    let mut stdin_text = vec![];
+
+                    for line in stdin.lock().lines() {
+                        stdin_text.push(line?);
+                    }
+
+                    let msg = Msg::new(
+                        None,
+                        recipient.clone(),
+                        subject.clone(),
+                        stdin_text.join("\n"),
+                    );
+
+                    send(msg).await?;
+                }
+            }
+            None => {
+                eprintln!("No mail recipient available!");
+                exit(1);
+            }
+        }
+
+        return Ok(());
+    }
 
     if let Some((addr, port)) = ARGS.listen.clone().unwrap_or_default().split_once(':') {
         info!("Running mailpeter, listen on http://{addr}:{port}");

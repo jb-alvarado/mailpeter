@@ -10,4 +10,17 @@ pub struct Args {
 
     #[clap(short, long, help = "Listen on IP:PORT, like: 127.0.0.1:8989")]
     pub listen: Option<String>,
+
+    #[clap(help = "Mail recipient for command line usage")]
+    pub recipient: Option<String>,
+
+    #[clap(short, long, help = "Mail subject for command line usage")]
+    pub subject: Option<String>,
+
+    #[clap(
+        short,
+        long,
+        help = "Mail text for command line usage, stdin without -t work too."
+    )]
+    pub text: Option<String>,
 }

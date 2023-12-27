@@ -11,14 +11,14 @@ use crate::CONFIG;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Msg {
     #[serde(skip_deserializing)]
-    pub direction: String,
+    pub direction: Option<String>,
     pub mail: String,
     pub subject: String,
     pub text: String,
 }
 
 impl Msg {
-    pub fn new(self, direction: String, mail: String, subject: String, text: String) -> Self {
+    pub fn new(direction: Option<String>, mail: String, subject: String, text: String) -> Self {
         Self {
             direction,
             mail,
@@ -28,10 +28,15 @@ impl Msg {
     }
 
     pub fn content_type(&self) -> header::ContentType {
-        if Dom::parse(&self.text).is_ok() {
-            header::ContentType::TEXT_HTML
-        } else {
-            header::ContentType::TEXT_PLAIN
+        match Dom::parse(&self.text) {
+            Ok(dom) => {
+                if dom.children.len() == 1 && dom.children[0].text().is_some() {
+                    return header::ContentType::TEXT_PLAIN;
+                }
+
+                header::ContentType::TEXT_HTML
+            }
+            Err(_) => header::ContentType::TEXT_PLAIN,
         }
     }
 }
@@ -39,7 +44,7 @@ impl Msg {
 impl Default for Msg {
     fn default() -> Self {
         Self {
-            direction: "contact".to_string(),
+            direction: None,
             mail: "my@mail.org".to_string(),
             subject: "My Subject".to_string(),
             text: "My Text".to_string(),
@@ -50,14 +55,19 @@ impl Default for Msg {
 pub async fn send(msg: Msg) -> Result<(), ServiceError> {
     let mut message = Message::builder()
         .from(CONFIG.mail.user.parse()?)
-        .reply_to(msg.mail.parse()?)
         .subject(&msg.subject)
         .header(msg.content_type());
 
-    for recipient in &CONFIG.mail.recipients {
-        if recipient.direction == msg.direction {
-            for mail in &recipient.mails {
-                message = message.to(mail.parse()?);
+    if msg.direction.is_none() {
+        message = message.to(msg.mail.parse()?);
+    } else {
+        message = message.reply_to(msg.mail.parse()?);
+
+        for recipient in &CONFIG.mail.recipients {
+            if Some(&recipient.direction) == msg.direction.as_ref() {
+                for mail in &recipient.mails {
+                    message = message.to(mail.parse()?);
+                }
             }
         }
     }
