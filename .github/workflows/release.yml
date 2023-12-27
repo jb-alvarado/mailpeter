@@ -70,8 +70,7 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'amd64' }}
         run: |
           cargo build --release
-          cp ./target/release/mailpeter.exe .
-          Compress-Archive LICENSE README.md mailpeter.exe "mailpeter-${{github.ref_name}}_${{matrix.arch}}.zip"
+          Compress-Archive -Path LICENSE, README.md, target/release/mailpeter.exe -DestinationPath "mailpeter-${{github.ref_name}}_${{matrix.arch}}.zip"
 
       # - name: Build on Windows arm64
       #   if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'arm64' }}
