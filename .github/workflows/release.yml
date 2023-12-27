@@ -70,19 +70,12 @@ jobs:
           zip -r "release/mailpeter-${{github.ref_name}}_macOS-${{matrix.arch}}.zip" assets/mailpeter.toml LICENSE README.md mailpeter
 
       - name: Build on Windows amd64
-        if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'amd64' }}
+        if: ${{ matrix.os == 'windows-latest' }}
         run: |
           New-Item -Path 'release' -ItemType Directory
 
           cargo build --release
           Compress-Archive -Path assets/mailpeter.toml, LICENSE, README.md, target/release/mailpeter.exe -DestinationPath "release/mailpeter-${{github.ref_name}}_windows-${{matrix.arch}}.zip"
-
-      # - name: Build on Windows arm64
-      #   if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'arm64' }}
-      #   run: |
-      #     cargo build --release
-      #     cp ./target/release/mailpeter.exe .
-      #     zip -r "mailpeter-${{github.ref_name}}_aarch64.zip" assets LICENSE README.md mailpeter.exe
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
