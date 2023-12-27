@@ -20,7 +20,6 @@ clap = { version = "4.3", features = ["derive"] }
 derive_more = "0.99"
 fast_log = { version = "1.6", features = ["gzip"] }
 fastdate = "0.3"
-file-rotate = "0.7"
 html_parser = "0.7"
 lazy_static = "1.4"
 lettre = { version = "0.11", features = [

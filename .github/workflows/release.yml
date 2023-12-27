@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
-        arch: [amd64, arm64]
+        arch: [x86_64, arm64]
 
     runs-on: ${{ matrix.os }}
 
@@ -24,8 +24,8 @@ jobs:
         run: |
           rustup update stable
 
-      - name: Build on Linux amd64
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'amd64' }}
+      - name: Build on Linux x86_64
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'x86_64' }}
         run: |
           sudo apt update && sudo apt install -y musl-tools musl-dev
           mkdir release
@@ -58,7 +58,7 @@ jobs:
       #     tar -czvf "mailpeter-${{github.ref_name}}_aarch64-unknown-linux-musl.tar.gz" assets LICENSE README.md mailpeter
       #     rm -f mailpeter
       #     cargo deb --target=aarch64-unknown-linux-musl -o mailpeter_${{github.ref_name}}-1_arm64.deb
-      #     cargo generate-rpm --target=aarch64-unknown-linux-musl -o mailpeter-${{github.ref_name}}-1.x86_64.rpm
+      #     cargo generate-rpm --target=aarch64-unknown-linux-musl -o mailpeter-${{github.ref_name}}-1.aarch64.rpm
 
       - name: Build on MacOS
         if: ${{ matrix.os == 'macOS-latest' }}
@@ -67,9 +67,9 @@ jobs:
 
           cargo build --release
           cp ./target/release/mailpeter .
-          zip -r "release/mailpeter-${{github.ref_name}}_macOS-${{matrix.arch}}.zip" assets/mailpeter.toml LICENSE README.md mailpeter
+          zip -r "release/mailpeter-${{github.ref_name}}_MacOS-${{matrix.arch}}.zip" assets/mailpeter.toml LICENSE README.md mailpeter
 
-      - name: Build on Windows amd64
+      - name: Build on Windows
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
           New-Item -Path 'release' -ItemType Directory
