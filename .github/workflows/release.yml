@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
-        arch: [x86_64, arm64]
+        arch: [x86_64, aarch64]
 
     runs-on: ${{ matrix.os }}
 
@@ -44,8 +44,8 @@ jobs:
           cargo deb --target=x86_64-unknown-linux-musl -o release/mailpeter_${{github.ref_name}}-1_amd64.deb
           cargo generate-rpm --target=x86_64-unknown-linux-musl -o release/mailpeter-${{github.ref_name}}-1.x86_64.rpm
 
-      - name: Build on Linux arm64
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' }}
+      - name: Build on Linux aarch64
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'aarch64' }}
         run: |
           sudo apt update && sudo apt install -y musl musl-dev musl-tools
           cargo install cargo-deb
@@ -54,7 +54,7 @@ jobs:
           # export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-gnu-gcc
           # export CC=aarch64-linux-gnu-gcc
 
-          echo -e '[target.aarch64-unknown-linux-musl]\nlinker = "gcc"\nrustflags = [ "-C", "target-feature=+crt-static", "-C", "link-arg=-lgcc" ]' >  ~/.cargo/config
+          echo -e '[target.aarch64-unknown-linux-musl]\nlinker = "aarch64-linux-gnu-gcc"\nrustflags = [ "-C", "target-feature=+crt-static", "-C", "link-arg=-lgcc" ]' >  ~/.cargo/config
 
           cargo build --release --target=aarch64-unknown-linux-musl
 
