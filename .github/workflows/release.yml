@@ -44,21 +44,20 @@ jobs:
           cargo deb --target=x86_64-unknown-linux-musl -o release/mailpeter_${{github.ref_name}}-1_amd64.deb
           cargo generate-rpm --target=x86_64-unknown-linux-musl -o release/mailpeter-${{github.ref_name}}-1.x86_64.rpm
 
-      # - name: Build on Linux arm64
-      #   if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' }}
-      #   run: |
-      # musl musl-dev musl-tools
-      #     sudo apt update && sudo apt install -y musl musl-dev musl-tools
-      #     cargo install cargo-deb
-      #     cargo install cargo-generate-rpm
+      - name: Build on Linux arm64
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' }}
+        run: |
+          sudo apt update && sudo apt install -y musl musl-dev musl-tools
+          cargo install cargo-deb
+          cargo install cargo-generate-rpm
 
-      #     cargo build --release --target=aarch64-unknown-linux-musl
+          cargo build --release --target=aarch64-unknown-linux-musl
 
-      #     cp ./target/aarch64-unknown-linux-musl/release/mailpeter .
-      #     tar -czvf "mailpeter-${{github.ref_name}}_aarch64-unknown-linux-musl.tar.gz" assets LICENSE README.md mailpeter
-      #     rm -f mailpeter
-      #     cargo deb --target=aarch64-unknown-linux-musl -o mailpeter_${{github.ref_name}}-1_arm64.deb
-      #     cargo generate-rpm --target=aarch64-unknown-linux-musl -o mailpeter-${{github.ref_name}}-1.aarch64.rpm
+          cp ./target/aarch64-unknown-linux-musl/release/mailpeter .
+          tar -czvf "mailpeter-${{github.ref_name}}_aarch64-unknown-linux-musl.tar.gz" assets LICENSE README.md mailpeter
+          rm -f mailpeter
+          cargo deb --target=aarch64-unknown-linux-musl -o mailpeter_${{github.ref_name}}-1_arm64.deb
+          cargo generate-rpm --target=aarch64-unknown-linux-musl -o mailpeter-${{github.ref_name}}-1.aarch64.rpm
 
       - name: Build on MacOS
         if: ${{ matrix.os == 'macOS-latest' }}
