@@ -46,7 +46,7 @@ jobs:
       - name: Build on Linux arm64
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' }}
         run: |
-          sudo apt update && sudo apt install -y musl-tools musl-dev
+          sudo apt update && sudo apt install -y musl-tools musl-dev gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
 
           cargo install cargo-deb
           cargo install cargo-generate-rpm
@@ -58,20 +58,6 @@ jobs:
           rm -f mailpeter
           cargo deb --target=aarch64-unknown-linux-musl -o mailpeter_${{github.ref_name}}-1_arm64.deb
           cargo generate-rpm --target=aarch64-unknown-linux-musl -o mailpeter-${{github.ref_name}}-1.x86_64.rpm
-
-      - name: Build on Windows amd64
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          cargo build --release
-          cp ./target/release/mailpeter.exe .
-          zip -r "mailpeter-${{github.ref_name}}_x86_64.zip" assets LICENSE README.md mailpeter.exe
-
-      - name: Build on Windows arm64
-        if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'arm64' }}
-        run: |
-          cargo build --release
-          cp ./target/release/mailpeter.exe .
-          zip -r "mailpeter-${{github.ref_name}}_aarch64.zip" assets LICENSE README.md mailpeter.exe
 
       - name: Build on MacOS amd64
         if: ${{ matrix.os == 'macOS-latest' && matrix.arch == 'amd64' }}
@@ -86,3 +72,17 @@ jobs:
           cargo build --release
           cp ./target/release/mailpeter .
           zip -r "mailpeter-${{github.ref_name}}_aarch64.zip" assets LICENSE README.md mailpeter
+
+      - name: Build on Windows amd64
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          cargo build --release
+          cp ./target/release/mailpeter.exe .
+          zip -r "mailpeter-${{github.ref_name}}_x86_64.zip" assets LICENSE README.md mailpeter.exe
+
+      - name: Build on Windows arm64
+        if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'arm64' }}
+        run: |
+          cargo build --release
+          cp ./target/release/mailpeter.exe .
+          zip -r "mailpeter-${{github.ref_name}}_aarch64.zip" assets LICENSE README.md mailpeter.exe
