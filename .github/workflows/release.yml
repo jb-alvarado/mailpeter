@@ -47,7 +47,7 @@ jobs:
       - name: Build on Linux arm64
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' }}
         run: |
-          sudo apt update && sudo apt install -y musl musl-dev musl-tools
+          sudo apt update && sudo apt install -y gcc musl musl-dev musl-tools
           cargo install cargo-deb
           cargo install cargo-generate-rpm
 
