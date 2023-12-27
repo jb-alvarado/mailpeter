@@ -1,0 +1,50 @@
+name: Test and Release
+
+on:
+  push:
+    tags:
+      - '*'
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+        arch: [amd64, arm64]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set Build Tools and update Rust
+        run: |
+          rustup update stable
+          rustup component add rustfmt
+          rustup component add clippy
+          cargo install cargo-deb
+          cargo install cargo-generate-rpm
+
+      - name: Build on Linux amd64
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'amd64' }}
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+          cargo test --all-features
+          cargo clippy --all-features --all-targets -- --deny warnings
+          cargo fmt --all -- --check
+          cargo build --release --target=x86_64-unknown-linux-musl
+          cp ./target/${target}/release/mailpeter .
+          tar -czvf "mailpeter-${{github.ref_name}}_x86_64-unknown-linux-musl.tar.gz" assets LICENSE README.md mailpeter
+          rm -f mailpeter
+          cargo deb --target=x86_64-unknown-linux-musl -o mailpeter_${{github.ref_name}}-1_amd64.deb
+
+      - name: Build on Linux arm64
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' }}
+        run: |
+          rustup target add aarch64-unknown-linux-gnu
+          cargo test --all-features
+          cargo clippy --all-features --all-targets -- --deny warnings
+          cargo fmt --all -- --check
+          cargo build --release --target=aarch64-unknown-linux-gnu
+          cp ./target/${target}/release/mailpeter .
+          tar -czvf "mailpeter-${{github.ref_name}}_aarch64-unknown-linux-gnu.tar.gz" assets LICENSE README.md mailpeter
+          rm -f mailpeter
+          cargo deb --target=aarch64-unknown-linux-gnu -o mailpeter_${{github.ref_name}}-1_arm64.deb
