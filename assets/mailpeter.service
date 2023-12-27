@@ -8,7 +8,7 @@ Restart=always
 StartLimitInterval=20
 RestartSec=1
 KillMode=mixed
-User=manager-api
+User=mailpeter
 
 [Install]
 WantedBy=multi-user.target

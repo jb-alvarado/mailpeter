@@ -74,11 +74,11 @@ jobs:
           zip -r "mailpeter-${{github.ref_name}}_aarch64.zip" assets LICENSE README.md mailpeter
 
       - name: Build on Windows amd64
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'amd64' }}
         run: |
           cargo build --release
           cp ./target/release/mailpeter.exe .
-          zip -r "mailpeter-${{github.ref_name}}_x86_64.zip" assets LICENSE README.md mailpeter.exe
+          powershell Compress-Archive LICENSE README.md mailpeter.exe "mailpeter-${{github.ref_name}}_x86_64.zip"
 
       # - name: Build on Windows arm64
       #   if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'arm64' }}

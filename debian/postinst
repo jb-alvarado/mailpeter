@@ -1,0 +1,18 @@
+#!/bin/sh
+#DEBHELPER#
+
+sysUser="mailpeter"
+
+if [ -f /run/.containerenv ] || [ -f /run/.dockerenv ] || [ -f /.dockerenv ] || [ -f /.dockerinit ]; then
+    sysUser="root"
+fi
+
+if [ ! $(id -u $sysUser 2>/dev/null || echo -1) -ge 0 ]; then
+    adduser --system --create-home $sysUser > /dev/null || adduser --system --home "/home/$sysUser" $sysUser
+fi
+
+if [ ! -d "/var/log/ffplayout" ]; then
+    mkdir "/var/log/ffplayout"
+
+    chown ${sysUser}: "/var/log/ffplayout"
+fi

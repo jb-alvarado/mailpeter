@@ -88,6 +88,8 @@ assets = [
         "644",
     ],
 ]
+maintainer-scripts = "./debian/"
+systemd-units = { enable = false, unit-scripts = "./assets" }
 
 # REHL RPM PACKAGE
 [package.metadata.generate-rpm]
@@ -98,5 +100,7 @@ assets = [
     { source = "./assets/mailpeter.toml", dest = "/etc/mailpeter/mailpeter.toml", mode = "644", config = true },
     { source = "./assets/mailpeter.service", dest = "/lib/systemd/system/mailpeter.service", mode = "644" },
     { source = "./LICENSE", dest = "/usr/share/doc/mailpeter/LICENSE", mode = "644" },
+    { source = "./debian/postinst", dest = "/usr/share/mailpeter/postinst", mode = "755" },
 ]
 auto-req = "no"
+post_install_script = "/usr/share/mailpeter/postinst"
