@@ -67,7 +67,7 @@ jobs:
 
           cargo build --release
           cp ./target/release/mailpeter .
-          zip -r "release/mailpeter-${{github.ref_name}}_${{matrix.arch}}.zip" assets LICENSE README.md mailpeter
+          zip -r "release/mailpeter-${{github.ref_name}}_${{matrix.arch}}.zip" assets/mailpeter.toml LICENSE README.md mailpeter
 
       - name: Build on Windows amd64
         if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'amd64' }}
@@ -75,7 +75,7 @@ jobs:
           New-Item -Path 'release' -ItemType Directory
 
           cargo build --release
-          Compress-Archive -Path LICENSE, README.md, target/release/mailpeter.exe -DestinationPath "release/mailpeter-${{github.ref_name}}_${{matrix.arch}}.zip"
+          Compress-Archive -Path assets/mailpeter.toml, LICENSE, README.md, target/release/mailpeter.exe -DestinationPath "release/mailpeter-${{github.ref_name}}_${{matrix.arch}}.zip"
 
       # - name: Build on Windows arm64
       #   if: ${{ matrix.os == 'windows-latest' && matrix.arch == 'arm64' }}
