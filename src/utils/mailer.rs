@@ -1,7 +1,11 @@
 use html_parser::Dom;
 use lettre::{
-    message::header, transport::smtp::authentication::Credentials, AsyncSmtpTransport,
-    AsyncTransport, Message, Tokio1Executor,
+    message::{
+        header::{self, ContentType},
+        Attachment, MultiPart, SinglePart,
+    },
+    transport::smtp::authentication::Credentials,
+    AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
 };
 use serde::{Deserialize, Serialize};
 
@@ -10,6 +14,8 @@ use crate::CONFIG;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Msg {
+    pub attachment: Option<Vec<u8>>,
+    pub attachment_name: Option<String>,
     #[serde(skip_deserializing)]
     pub direction: Option<String>,
     pub mail: String,
@@ -18,8 +24,17 @@ pub struct Msg {
 }
 
 impl Msg {
-    pub fn new(direction: Option<String>, mail: String, subject: String, text: String) -> Self {
+    pub fn new(
+        direction: Option<String>,
+        mail: String,
+        subject: String,
+        text: String,
+        attachment: Option<Vec<u8>>,
+        attachment_name: Option<String>,
+    ) -> Self {
         Self {
+            attachment,
+            attachment_name,
             direction,
             mail,
             subject,
@@ -44,6 +59,8 @@ impl Msg {
 impl Default for Msg {
     fn default() -> Self {
         Self {
+            attachment: None,
+            attachment_name: None,
             direction: None,
             mail: "my@mail.org".to_string(),
             subject: "My Subject".to_string(),
@@ -55,8 +72,7 @@ impl Default for Msg {
 pub async fn send(msg: Msg) -> Result<(), ServiceError> {
     let mut message = Message::builder()
         .from(CONFIG.mail.user.parse()?)
-        .subject(&msg.subject)
-        .header(msg.content_type());
+        .subject(&msg.subject);
 
     if msg.direction.is_none() {
         message = message.to(msg.mail.parse()?);
@@ -72,7 +88,24 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
         }
     }
 
-    if let Ok(mail) = message.body(msg.text) {
+    let mut part = MultiPart::mixed().singlepart(
+        SinglePart::builder()
+            .header(msg.content_type())
+            .body(msg.text),
+    );
+
+    if let Some(file) = msg.attachment {
+        if let Some(kind) = infer::get(&file) {
+            let content_type = ContentType::parse(kind.mime_type()).unwrap();
+            let attachment = Attachment::new(msg.attachment_name.unwrap()).body(file, content_type);
+
+            part = part.singlepart(attachment);
+        } else {
+            return Err(ServiceError::Conflict("File type not known!".to_string()));
+        };
+    }
+
+    if let Ok(mail) = message.multipart(part) {
         let credentials = Credentials::new(CONFIG.mail.user.clone(), CONFIG.mail.password.clone());
 
         let transporter = if CONFIG.mail.starttls {

@@ -1,6 +1,8 @@
 use std::{
+    fs,
     io::{self, BufRead},
     net::IpAddr,
+    path::Path,
     str::FromStr,
 };
 
@@ -36,8 +38,35 @@ async fn main() -> std::io::Result<()> {
     if let Some(subject) = &ARGS.subject {
         match &ARGS.recipient {
             Some(recipient) => {
+                let mut attachment = None;
+                let mut attachment_name = None;
+
+                if let Some(file) = &ARGS.attachment {
+                    let size = fs::metadata(file)?.len();
+
+                    if size > (CONFIG.max_attachment_size_mb * 1048576.0) as u64 {
+                        eprintln!("Attachment to big!");
+                        exit(1);
+                    }
+                    attachment = Some(fs::read(file)?);
+                    attachment_name = Some(
+                        Path::new(file)
+                            .file_name()
+                            .unwrap_or_default()
+                            .to_string_lossy()
+                            .to_string(),
+                    );
+                }
+
                 if let Some(text) = &ARGS.text {
-                    let msg = Msg::new(None, recipient.clone(), subject.clone(), text.clone());
+                    let msg = Msg::new(
+                        None,
+                        recipient.clone(),
+                        subject.clone(),
+                        text.clone(),
+                        attachment,
+                        attachment_name,
+                    );
 
                     send(msg).await?;
                 } else {
@@ -53,6 +82,8 @@ async fn main() -> std::io::Result<()> {
                         recipient.clone(),
                         subject.clone(),
                         stdin_text.join("\n"),
+                        attachment,
+                        attachment_name,
                     );
 
                     send(msg).await?;

@@ -15,6 +15,7 @@ pub struct Config {
     pub log_to_file: bool,
     pub reverse_proxy_ip: String,
     pub limit_request_seconds: u64,
+    pub max_attachment_size_mb: f64,
     pub mail: Mail,
 }
 
