@@ -11,8 +11,11 @@ if [ ! $(id -u $sysUser 2>/dev/null || echo -1) -ge 0 ]; then
     adduser --system --create-home $sysUser > /dev/null || adduser --system --home "/home/$sysUser" $sysUser
 fi
 
-if [ ! -d "/var/log/ffplayout" ]; then
-    mkdir "/var/log/ffplayout"
+if [ ! -d "/var/log/mailpeter" ]; then
+    mkdir -p "/var/log/mailpeter"
 
-    chown ${sysUser}: "/var/log/ffplayout"
+    chown ${sysUser}: "/var/log/mailpeter"
+    chown ${sysUser}: "/etc/mailpeter"
+
+    chmod 600 "/etc/mailpeter/mailpeter.toml"
 fi
