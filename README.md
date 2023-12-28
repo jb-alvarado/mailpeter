@@ -46,3 +46,14 @@ Post content should look like:
 }
 ```
 Post request to: `http://127.0.0.1:8989/mail/contact/`
+
+#### Send with attachment
+
+```BASH
+curl -i -X PUT -H "Content-Type: multipart/form-data" \
+  -F mail=me@example.org \
+  -F subject="my subject" \
+  -F text="Have you seen this files?" \
+  -F "file=@/home/user/Documents/my-contract.pdf" \
+  http://127.0.0.1:8989/mail/attachment/contact/
+```
