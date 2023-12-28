@@ -1,4 +1,5 @@
 use std::{
+    ffi::OsStr,
     fs,
     io::{self, BufRead},
     path::Path,
@@ -98,35 +99,30 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
 
     if let Some(files) = msg.attachment {
         for file in files {
-            if let Some(kind) = infer::get(&file.1) {
-                let content_type = ContentType::parse(kind.mime_type()).unwrap();
-                let attachment = Attachment::new(file.0).body(file.1, content_type);
-
-                part = part.singlepart(attachment);
-            } else {
-                return Err(ServiceError::Conflict("File type not known!".to_string()));
+            let mime_type = match infer::get(&file.1) {
+                Some(kind) => kind.mime_type(),
+                None => "application/octet-stream",
             };
+
+            let content_type = ContentType::parse(mime_type).unwrap();
+            let attachment = Attachment::new(file.0).body(file.1, content_type);
+
+            part = part.singlepart(attachment);
         }
     }
 
-    if let Ok(mail) = message.multipart(part) {
-        let credentials = Credentials::new(CONFIG.mail.user.clone(), CONFIG.mail.password.clone());
+    let mail = message.multipart(part)?;
+    let credentials = Credentials::new(CONFIG.mail.user.clone(), CONFIG.mail.password.clone());
 
-        let transporter = if CONFIG.mail.starttls {
-            AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&CONFIG.mail.smtp)
-        } else {
-            AsyncSmtpTransport::<Tokio1Executor>::relay(&CONFIG.mail.smtp)
-        };
-
-        let mailer = transporter?.credentials(credentials).build();
-
-        // Send the mail
-        if let Err(e) = mailer.send(mail).await {
-            return Err(ServiceError::Conflict(format!("Could not send mail: {e}")));
-        }
+    let transporter = if CONFIG.mail.starttls {
+        AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&CONFIG.mail.smtp)
     } else {
-        return Err(ServiceError::InternalServerError);
-    }
+        AsyncSmtpTransport::<Tokio1Executor>::relay(&CONFIG.mail.smtp)
+    };
+
+    let mailer = transporter?.credentials(credentials).build();
+
+    mailer.send(mail).await?;
 
     Ok(())
 }
@@ -147,7 +143,7 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
             size += fs::metadata(&file)?.len();
             let name = Path::new(&file)
                 .file_name()
-                .unwrap_or_default()
+                .unwrap_or(OsStr::new("file"))
                 .to_string_lossy()
                 .to_string();
 
