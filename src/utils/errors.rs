@@ -85,3 +85,9 @@ impl From<std::net::AddrParseError> for ServiceError {
         ServiceError::Conflict(err.to_string())
     }
 }
+
+impl From<actix_multipart::MultipartError> for ServiceError {
+    fn from(err: actix_multipart::MultipartError) -> ServiceError {
+        ServiceError::BadRequest(err.to_string())
+    }
+}

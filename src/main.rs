@@ -9,7 +9,7 @@ use log::{error, info};
 pub mod api;
 pub mod utils;
 
-use api::routes::post_mail;
+use api::routes::{post_mail, post_mail_attachment};
 use utils::{
     arg_parser::Args,
     config::{read_config, Config},
@@ -55,6 +55,7 @@ async fn main() -> std::io::Result<()> {
                     "%{r}a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T",
                 ))
                 .service(post_mail)
+                .service(post_mail_attachment)
         })
         .bind((addr.to_string(), port.parse().unwrap_or_default()))?
         .run()
