@@ -1,10 +1,4 @@
-use std::{
-    fs,
-    io::{self, BufRead},
-    net::IpAddr,
-    path::Path,
-    str::FromStr,
-};
+use std::{net::IpAddr, str::FromStr};
 
 use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{middleware, web, App, HttpServer};
@@ -15,15 +9,13 @@ use log::{error, info};
 pub mod api;
 pub mod utils;
 
-use std::process::exit;
-
 use api::routes::post_mail;
 use utils::{
     arg_parser::Args,
     config::{read_config, Config},
     ip_extrator::IpExtractor,
     logging::init_logger,
-    mailer::{send, Msg},
+    mailer::cli_sender,
 };
 
 lazy_static! {
@@ -35,64 +27,9 @@ lazy_static! {
 async fn main() -> std::io::Result<()> {
     init_logger()?;
 
-    if let Some(subject) = &ARGS.subject {
-        match &ARGS.recipient {
-            Some(recipient) => {
-                let mut attachment = None;
-                let mut attachment_name = None;
-
-                if let Some(file) = &ARGS.attachment {
-                    let size = fs::metadata(file)?.len();
-
-                    if size > (CONFIG.max_attachment_size_mb * 1048576.0) as u64 {
-                        eprintln!("Attachment to big!");
-                        exit(1);
-                    }
-                    attachment = Some(fs::read(file)?);
-                    attachment_name = Some(
-                        Path::new(file)
-                            .file_name()
-                            .unwrap_or_default()
-                            .to_string_lossy()
-                            .to_string(),
-                    );
-                }
-
-                if let Some(text) = &ARGS.text {
-                    let msg = Msg::new(
-                        None,
-                        recipient.clone(),
-                        subject.clone(),
-                        text.clone(),
-                        attachment,
-                        attachment_name,
-                    );
-
-                    send(msg).await?;
-                } else {
-                    let stdin = io::stdin();
-                    let mut stdin_text = vec![];
-
-                    for line in stdin.lock().lines() {
-                        stdin_text.push(line?);
-                    }
-
-                    let msg = Msg::new(
-                        None,
-                        recipient.clone(),
-                        subject.clone(),
-                        stdin_text.join("\n"),
-                        attachment,
-                        attachment_name,
-                    );
-
-                    send(msg).await?;
-                }
-            }
-            None => {
-                eprintln!("No mail recipient available!");
-                exit(1);
-            }
+    if ARGS.subject.is_some() {
+        if let Err(e) = cli_sender().await {
+            eprintln!("{e}");
         }
 
         return Ok(());

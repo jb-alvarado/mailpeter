@@ -5,8 +5,8 @@ use clap::Parser;
     about = "Rust Contact API",
     long_about = None)]
 pub struct Args {
-    #[clap(short = 'A', long, help = "Path to attachment file")]
-    pub attachment: Option<String>,
+    #[clap(short = 'A', long, num_args = 0.., help = "Path to attachment file")]
+    pub attachment: Option<Vec<String>>,
 
     #[clap(short, long, help = "Path to config")]
     pub config: Option<String>,
