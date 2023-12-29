@@ -15,7 +15,7 @@ if [ ! -d "/var/log/mailpeter" ]; then
     mkdir -p "/var/log/mailpeter"
 
     chown ${sysUser}: "/var/log/mailpeter"
-    chown ${sysUser}: "/etc/mailpeter"
+    chown ${sysUser}: -R "/etc/mailpeter"
 
     chmod 600 "/etc/mailpeter/mailpeter.toml"
 fi
