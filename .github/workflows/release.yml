@@ -17,7 +17,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          targets: x86_64-unknown-linux-musl, aarch64-unknown-linux-musl
+          targets: x86_64-unknown-linux-musl, aarch64-unknown-linux-musl, aarch64-apple-darwin
           components: clippy
       - name: Set Build Tools and update Rust
         run: |
@@ -51,6 +51,11 @@ jobs:
           cargo build --release
           cp ./target/release/mailpeter .
           zip -r "release/mailpeter-${{github.ref_name}}_MacOS-x86_64.zip" assets/mailpeter.toml LICENSE README.md mailpeter
+          rm -f mailpeter
+
+          SDKROOT=$(xcrun -sdk macosx --show-sdk-path) MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version) cargo build --target=aarch64-apple-darwin
+          cp ./target/release/mailpeter .
+          zip -r "release/mailpeter-${{github.ref_name}}_MacOS-arm64.zip" assets/mailpeter.toml LICENSE README.md mailpeter
 
       - name: Build on Windows
         if: ${{ matrix.os == 'windows-latest' }}
