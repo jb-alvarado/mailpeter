@@ -3,7 +3,7 @@ Description=Simple mailer and API for contact forms
 After=network.target remote-fs.target
 
 [Service]
-ExecStart=/usr/bin/mailpeter -l 127.0.0.1:8989
+ExecStart=/usr/bin/mailpeter
 Restart=always
 StartLimitInterval=20
 RestartSec=1

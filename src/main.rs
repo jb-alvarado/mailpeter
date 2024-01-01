@@ -35,7 +35,12 @@ async fn main() -> std::io::Result<()> {
         return Ok(());
     }
 
-    if let Some((addr, port)) = ARGS.listen.clone().unwrap_or_default().split_once(':') {
+    let addr_port = match &ARGS.listen {
+        Some(ip) => ip,
+        None => &CONFIG.listening_on,
+    };
+
+    if let Some((addr, port)) = addr_port.split_once(':') {
         info!("Running mailpeter, listen on http://{addr}:{port}");
 
         let trusted_proxy_ip = IpAddr::from_str(&CONFIG.reverse_proxy_ip).expect("Proxy IP");

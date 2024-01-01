@@ -1,3 +1,4 @@
+listening_on = "127.0.0.1:8989"             # Address to listening on.
 log_keep_count = 10                         # How many log files should be kept until they are removed from the system.
 log_level = "debug"                         # What level to log.
 log_size_mb = 1                             # The size of the log file until a new log file is created.

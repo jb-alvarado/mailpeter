@@ -8,6 +8,7 @@ use crate::utils::errors::ServiceError;
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
+    pub listening_on: String,
     pub log_keep_count: i64,
     #[serde(deserialize_with = "string_to_log_level")]
     pub log_level: LevelFilter,
