@@ -25,6 +25,7 @@ port = 587
 user = "info@example.org"
 password = "super-secure-mail-password"
 starttls = true
+alias = ""                                  # Send to an alias, useful for system mail if the recipient is root, for example.
 
 [[mail.recipients]]
 direction = "contact"
