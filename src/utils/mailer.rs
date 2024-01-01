@@ -12,7 +12,7 @@ use lettre::{
         Attachment, MultiPart, SinglePart,
     },
     transport::smtp::authentication::Credentials,
-    AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
+    AsyncFileTransport, AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
 };
 use serde::{Deserialize, Serialize};
 
@@ -122,7 +122,13 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
 
     let mailer = transporter?.credentials(credentials).build();
 
-    mailer.send(mail).await?;
+    mailer.send(mail.clone()).await?;
+
+    if !CONFIG.mail_archive.is_empty() && Path::new(&CONFIG.mail_archive).is_dir() {
+        let backup = AsyncFileTransport::<Tokio1Executor>::new(Path::new(&CONFIG.mail_archive));
+
+        backup.send(mail).await?;
+    }
 
     Ok(())
 }

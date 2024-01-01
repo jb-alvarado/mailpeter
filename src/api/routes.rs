@@ -24,8 +24,8 @@ pub async fn post_mail(
     }
 }
 
-#[put("/mail/attachment/{direction}/")]
-pub async fn post_mail_attachment(
+#[put("/mail/{direction}/")]
+pub async fn put_mail_attachment(
     direction: web::Path<String>,
     mut payload: Multipart,
 ) -> Result<impl Responder, ServiceError> {

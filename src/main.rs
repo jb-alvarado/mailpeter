@@ -9,7 +9,7 @@ use log::{error, info};
 pub mod api;
 pub mod utils;
 
-use api::routes::{post_mail, post_mail_attachment};
+use api::routes::{post_mail, put_mail_attachment};
 use utils::{
     arg_parser::Args,
     config::{read_config, Config},
@@ -39,23 +39,41 @@ async fn main() -> std::io::Result<()> {
         info!("Running mailpeter, listen on http://{addr}:{port}");
 
         let trusted_proxy_ip = IpAddr::from_str(&CONFIG.reverse_proxy_ip).expect("Proxy IP");
+        let mut enable_limit = false;
+        let mut limit = 1;
+
+        if CONFIG.limit_request_seconds > 0 {
+            enable_limit = true;
+            limit = CONFIG.limit_request_seconds;
+        }
+
         let governor_conf = GovernorConfigBuilder::default()
-            .per_second(CONFIG.limit_request_seconds)
+            .per_second(limit)
             .burst_size(1)
             .key_extractor(IpExtractor)
             .finish()
             .unwrap();
 
         HttpServer::new(move || {
-            App::new()
+            let mut app = App::new()
                 .app_data(web::Data::new(trusted_proxy_ip))
-                .wrap(Governor::new(&governor_conf))
-                // custom logger to get client IPs behind Proxy
+                .wrap(middleware::Condition::new(
+                    enable_limit,
+                    Governor::new(&governor_conf),
+                ))
                 .wrap(middleware::Logger::new(
                     "%{r}a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T",
-                ))
-                .service(post_mail)
-                .service(post_mail_attachment)
+                ));
+
+            if CONFIG.routes.contains(&"text_only".to_string()) {
+                app = app.service(post_mail);
+            }
+
+            if CONFIG.routes.contains(&"with_attachments".to_string()) {
+                app = app.service(put_mail_attachment);
+            }
+
+            app
         })
         .bind((addr.to_string(), port.parse().unwrap_or_default()))?
         .run()

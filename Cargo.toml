@@ -27,6 +27,8 @@ infer = "0.15"
 lazy_static = "1.4"
 lettre = { version = "0.11", features = [
     "builder",
+    "file-transport",
+    "tokio1",
     "tokio1-rustls-tls",
     "smtp-transport",
 ], default-features = false }

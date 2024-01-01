@@ -68,6 +68,12 @@ impl From<lettre::transport::smtp::Error> for ServiceError {
     }
 }
 
+impl From<lettre::transport::file::Error> for ServiceError {
+    fn from(_err: lettre::transport::file::Error) -> ServiceError {
+        ServiceError::InternalServerError
+    }
+}
+
 impl From<lettre::address::AddressError> for ServiceError {
     fn from(err: lettre::address::AddressError) -> ServiceError {
         ServiceError::Conflict(err.to_string())

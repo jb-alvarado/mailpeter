@@ -16,6 +16,8 @@ pub struct Config {
     pub reverse_proxy_ip: String,
     pub limit_request_seconds: u64,
     pub max_attachment_size_mb: f64,
+    pub routes: Vec<String>,
+    pub mail_archive: String,
     pub mail: Mail,
 }
 

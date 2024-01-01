@@ -56,5 +56,22 @@ curl -i -X PUT -H "Content-Type: multipart/form-data" \
   -F subject="my subject" \
   -F text="Have you seen this files?" \
   -F "file=@/home/user/Documents/my-contract.pdf" \
-  http://127.0.0.1:8989/mail/attachment/contact/
+  http://127.0.0.1:8989/mail/contact/
+```
+
+## Run from CLI
+
+Mail sending from Command line is supported, text can come from STDIN or from `--text` parameter.
+
+Other options are:
+
+```BASH
+Options:
+  -A, --attachment [<ATTACHMENT>...]  Path to attachment file
+  -c, --config <CONFIG>               Path to config
+  -l, --listen <LISTEN>               Listen on IP:PORT, like: 127.0.0.1:8989
+  -s, --subject <SUBJECT>             Mail subject for command line usage
+  -t, --text <TEXT>                   Mail text for command line usage, stdin without -t work too
+  -h, --help                          Print help
+  -V, --version                       Print version
 ```
