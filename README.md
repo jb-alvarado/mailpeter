@@ -18,6 +18,7 @@ limit_request_seconds = 30                  # Limit the requests to protect from
 max_attachment_size_mb = 5.0                # Maximum size fro attachments.
 routes = ["text_only", "with_attachments"]  # Which routes should be provided.
 mail_archive = "/var/mail/mailpeter"        # Backup mails in folder, leave it empty for no backup.
+
 [mail]
 smtp = "smtp.example.org"
 port = 587
