@@ -77,3 +77,13 @@ Options:
   -h, --help                          Print help
   -V, --version                       Print version
 ```
+
+## Use as System Mailer
+
+mailpeter can be used for systemmail for example for cron messages. To act as a sendmail replacement add symlink like:
+
+```
+ln -s /usr/bin/mailpeter /usr/sbin/sendmail
+```
+
+`alias` in config needs a mail address for that.

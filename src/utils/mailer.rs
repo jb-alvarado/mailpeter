@@ -19,6 +19,18 @@ use serde::{Deserialize, Serialize};
 use crate::utils::errors::ServiceError;
 use crate::{ARGS, CONFIG};
 
+const IGNORE_LINES: [&str; 9] = [
+    "From:",
+    "To:",
+    "Subject:",
+    "MIME-Version:",
+    "Content-Type:",
+    "Content-Transfer-Encoding:",
+    "X-Cron-Env:",
+    "X-Cron-Env:",
+    "X-Cron-Env:",
+];
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Msg {
     pub attachment: Option<Vec<(String, Vec<u8>)>>,
@@ -73,9 +85,14 @@ impl Default for Msg {
 }
 
 pub async fn send(msg: Msg) -> Result<(), ServiceError> {
-    let mut message = Message::builder()
-        .from(CONFIG.mail.user.parse()?)
-        .subject(&msg.subject);
+    let mut message = Message::builder().subject(&msg.subject);
+
+    match &ARGS.full_name {
+        Some(full_name) => {
+            message = message.from(format!("{full_name} <{}>", CONFIG.mail.user).parse()?)
+        }
+        None => message = message.from(CONFIG.mail.user.parse()?),
+    };
 
     if msg.direction.is_none() {
         message = message.to(msg.mail.parse()?);
@@ -163,16 +180,19 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
         attachment = Some(file_collection);
     }
 
+    let mut subject = match ARGS.subject.clone() {
+        Some(s) => s,
+        None => "No Subject".to_string(),
+    };
+
     match recipient {
-        Some(recipient) => {
+        Some(mut recipient) => {
+            if !recipient.contains('@') && !CONFIG.mail.alias.is_empty() {
+                recipient = CONFIG.mail.alias.clone();
+            }
+
             if let Some(text) = &ARGS.text {
-                let msg = Msg::new(
-                    None,
-                    recipient.clone(),
-                    ARGS.subject.clone().unwrap(),
-                    text.clone(),
-                    attachment,
-                );
+                let msg = Msg::new(None, recipient.clone(), subject, text.clone(), attachment);
 
                 send(msg).await?;
             } else {
@@ -180,13 +200,20 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
                 let mut stdin_text = vec![];
 
                 for line in stdin.lock().lines() {
-                    stdin_text.push(line?);
+                    let line = line?;
+                    if line.starts_with("Subject:") {
+                        subject = line.split_once(": ").unwrap().1.to_string();
+                    }
+
+                    if !(ignore_start(&line) || stdin_text.is_empty() && line.is_empty()) {
+                        stdin_text.push(line);
+                    }
                 }
 
                 let msg = Msg::new(
                     None,
                     recipient.clone(),
-                    ARGS.subject.clone().unwrap(),
+                    subject,
                     stdin_text.join("\n"),
                     attachment,
                 );
@@ -202,4 +229,14 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
     }
 
     Ok(())
+}
+
+fn ignore_start(input: &str) -> bool {
+    for ignore_line in IGNORE_LINES.iter() {
+        if input.starts_with(ignore_line) {
+            return true;
+        }
+    }
+
+    false
 }

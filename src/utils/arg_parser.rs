@@ -11,6 +11,21 @@ pub struct Args {
     #[clap(short, long, help = "Path to config")]
     pub config: Option<String>,
 
+    // Hidden unused parameter for sendmail compatibility
+    #[clap(short = 'B', long, hide = true)]
+    pub body_type: Option<String>,
+
+    #[clap(
+        short = 'F',
+        long,
+        help = "Set the sender full name, this override From header."
+    )]
+    pub full_name: Option<String>,
+
+    // Hidden unused parameter for sendmail compatibility
+    #[clap(short, long, hide = true)]
+    pub ignore: bool,
+
     #[clap(short, long, help = "Listen on IP:PORT, like: 127.0.0.1:8989")]
     pub listen: Option<String>,
 
@@ -26,4 +41,8 @@ pub struct Args {
         help = "Mail text for command line usage, stdin without -t work too"
     )]
     pub text: Option<String>,
+
+    // Hidden unused parameter for sendmail compatibility
+    #[clap(short, long, hide = true)]
+    pub ox: Option<String>,
 }

@@ -29,6 +29,7 @@ pub struct Mail {
     pub user: String,
     pub password: String,
     pub starttls: bool,
+    pub alias: String,
     pub recipients: Vec<Recipients>,
 }
 

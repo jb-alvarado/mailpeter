@@ -2,7 +2,7 @@
 name = "mailpeter"
 description = "Simple mailer and API for contact forms"
 readme = "README.md"
-version = "0.3.1"
+version = "0.4.0"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/jb-alvarado/mailpeter"
@@ -15,7 +15,7 @@ lto = true
 
 [dependencies]
 actix-multipart = "0.6"
-actix-governor = "0.4"
+actix-governor = "0.5"
 actix-web = "4"
 clap = { version = "4.3", features = ["derive"] }
 derive_more = "0.99"

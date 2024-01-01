@@ -27,7 +27,7 @@ lazy_static! {
 async fn main() -> std::io::Result<()> {
     init_logger()?;
 
-    if ARGS.subject.is_some() {
+    if ARGS.subject.is_some() || ARGS.full_name.is_some() {
         if let Err(e) = cli_sender().await {
             eprintln!("{e}");
         }
