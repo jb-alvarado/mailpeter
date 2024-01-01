@@ -9,14 +9,15 @@ Simple mailer and API for contact forms.
 Config format is Toml, content of mailpeter.toml should look like:
 
 ```Toml
-log_keep_count = 10
-log_level = "info"
-log_size_mb = 1
-log_to_file = true
-reverse_proxy_ip = "127.0.0.1"
-limit_request_seconds = 30
-max_attachment_size_mb = 5.0
-
+log_keep_count = 10                         # How many log files should be kept until they are removed from the system.
+log_level = "debug"                         # What level to log.
+log_size_mb = 1                             # The size of the log file until a new log file is created.
+log_to_file = false                         # Log to file, or to console.
+reverse_proxy_ip = "127.0.0.1"              # IP from reverse proxy, I exists
+limit_request_seconds = 30                  # Limit the requests to protect from spamming. 0 for disable rate limit.
+max_attachment_size_mb = 5.0                # Maximum size fro attachments.
+routes = ["text_only", "with_attachments"]  # Which routes should be provided.
+mail_archive = "/var/mail/mailpeter"        # Backup mails in folder, leave it empty for no backup.
 [mail]
 smtp = "smtp.example.org"
 port = 587
@@ -65,7 +66,7 @@ Mail sending from Command line is supported, text can come from STDIN or from `-
 
 Other options are:
 
-```BASH
+```
 Options:
   -A, --attachment [<ATTACHMENT>...]  Path to attachment file
   -c, --config <CONFIG>               Path to config
