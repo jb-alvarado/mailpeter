@@ -19,6 +19,7 @@ jobs:
           toolchain: stable
           targets: x86_64-unknown-linux-musl, aarch64-unknown-linux-musl, aarch64-apple-darwin
           components: clippy
+      - uses: Swatinem/rust-cache@v2
       - name: Set Build Tools and update Rust
         run: |
           rustup update stable
