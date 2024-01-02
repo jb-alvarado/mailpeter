@@ -8,6 +8,16 @@ use crate::utils::{
     mailer::{send, Msg},
 };
 
+/// This Rust code handles HTTP POST and PUT requests related to sending emails.
+
+/// The **post_mail** function is an asynchronous function that handles POST requests to the
+/// "/mail/{direction}/" endpoint. The **{direction}** in the URL is a path parameter, which
+/// is captured and passed to the function as the **direction** argument. The function also
+/// accepts a JSON payload in the request body, which is deserialized into a **Msg** struct.
+/// The **direction** is then added to the **Msg** struct. The **send** function is called
+/// with the **Msg** struct to send the email. If the email is sent successfully, the function
+/// returns a success message.If there is an error, it logs the error and returns an
+/// **InternalServerError** response.
 #[post("/mail/{direction}/")]
 pub async fn post_mail(
     direction: web::Path<String>,
@@ -24,6 +34,17 @@ pub async fn post_mail(
     }
 }
 
+/// The **put_mail_attachment** function is another asynchronous function that handles PUT requests
+/// to the "/mail/{direction}/" endpoint. This function is designed to handle multipart form
+/// data, which is commonly used for file uploads.  The function initializes empty vectors and
+/// strings to hold the files and form fields from the request. It then enters a loop where it
+/// tries to get the next field from the multipart form data.  If the field has a
+/// **content_disposition** of "mail", "subject", or "text", the function reads the next chunk of
+/// data from the field and converts it to a string. If the field has a different
+/// **content_disposition**, the function assumes it's a file and reads the file data into a
+/// buffer. The filename and buffer are then added to the **files** vector. If the field has a
+/// content_disposition that the function doesn't recognize, it logs an error and returns a
+/// **Conflict** response.
 #[put("/mail/{direction}/")]
 pub async fn put_mail_attachment(
     direction: web::Path<String>,

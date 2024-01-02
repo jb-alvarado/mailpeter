@@ -14,11 +14,13 @@ use lettre::{
     transport::smtp::authentication::Credentials,
     AsyncFileTransport, AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
 };
+use log::error;
 use serde::{Deserialize, Serialize};
 
 use crate::utils::errors::ServiceError;
 use crate::{ARGS, CONFIG};
 
+/// Ignore lines from stdin, that starts with this strings
 const IGNORE_LINES: [&str; 9] = [
     "From:",
     "To:",
@@ -31,6 +33,22 @@ const IGNORE_LINES: [&str; 9] = [
     "X-Cron-Env:",
 ];
 
+/// Mail struct
+///
+/// This struct contains the mail data, that is send to the mail server.
+/// The struct is used for serialization and deserialization.
+///
+/// The struct has the following fields:
+/// * **attachment** - A vector of tuples, that contains the file name and the file content
+/// * **direction** - A string that contains the mail direction
+/// * **mail** - A string that contains the mail address
+/// * **subject** - A string that contains the mail subject
+/// * **text** - A string that contains the mail text
+///
+/// The struct has the following methods:
+/// * **new** - The constructor for the struct
+/// * **content_type** - Returns the content type of the mail text
+/// * **default** - Returns the default struct
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Msg {
     pub attachment: Option<Vec<(String, Vec<u8>)>>,
@@ -41,6 +59,13 @@ pub struct Msg {
     pub text: String,
 }
 
+/// The `Msg` struct has an associated `new` function, which is a constructor that takes values for
+/// each of the struct's fields and returns a new `Msg` object.
+///
+/// The `content_type` method returns the content type of the email message. It tries to parse the
+/// `text` field as a `Dom` object (presumably representing a Document Object Model). If the parsing
+/// is successful and the `Dom` object has exactly one child that contains text, it returns `TEXT_PLAIN`
+/// as the content type. Otherwise, it returns `TEXT_HTML`. If the parsing fails, it also returns `TEXT_PLAIN`.
 impl Msg {
     pub fn new(
         direction: Option<String>,
@@ -72,6 +97,8 @@ impl Msg {
     }
 }
 
+/// The `Msg` struct also implements the `Default` trait, which provides a `default` method that returns a
+/// `Msg` object with default values for each field.
 impl Default for Msg {
     fn default() -> Self {
         Self {
@@ -84,9 +111,11 @@ impl Default for Msg {
     }
 }
 
+/// Take Msg object and send it to the mail server
 pub async fn send(msg: Msg) -> Result<(), ServiceError> {
     let mut message = Message::builder().subject(&msg.subject);
 
+    // full_name comes mostly from system mails and it is implemented to be compatible with sendmail
     match &ARGS.full_name {
         Some(full_name) => {
             message = message.from(format!("{full_name} <{}>", CONFIG.mail.user).parse()?)
@@ -94,6 +123,7 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
         None => message = message.from(CONFIG.mail.user.parse()?),
     };
 
+    // directions are used to send mails to different recipients and comes from API routes
     if msg.direction.is_none() {
         message = message.to(msg.mail.parse()?);
     } else {
@@ -108,12 +138,14 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
         }
     }
 
+    // create multipart mail to support attachments
     let mut part = MultiPart::mixed().singlepart(
         SinglePart::builder()
             .header(msg.content_type())
             .body(msg.text),
     );
 
+    // add attachments to mail if available
     if let Some(files) = msg.attachment {
         for file in files {
             let mime_type = match infer::get(&file.1) {
@@ -131,6 +163,7 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
     let mail = message.multipart(part)?;
     let credentials = Credentials::new(CONFIG.mail.user.clone(), CONFIG.mail.password.clone());
 
+    // create transporter based on starttls configuration
     let transporter = if CONFIG.mail.starttls {
         AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&CONFIG.mail.smtp)
     } else {
@@ -141,6 +174,7 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
 
     mailer.send(mail.clone()).await?;
 
+    // backup mail to file if mail_archive is set
     if !CONFIG.mail_archive.is_empty() && Path::new(&CONFIG.mail_archive).is_dir() {
         let backup = AsyncFileTransport::<Tokio1Executor>::new(Path::new(&CONFIG.mail_archive));
 
@@ -150,6 +184,7 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
     Ok(())
 }
 
+/// Send mail from command line arguments
 pub async fn cli_sender() -> Result<(), ServiceError> {
     let mut attachment = None;
     let mut recipient = ARGS.recipient.clone();
@@ -162,6 +197,7 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
             recipient = files.pop();
         }
 
+        // read files from disk and add them to attachment
         for file in files {
             size += fs::metadata(&file)?.len();
             let name = Path::new(&file)
@@ -170,7 +206,14 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
                 .to_string_lossy()
                 .to_string();
 
+            // check if file is to big
             if size > (CONFIG.max_attachment_size_mb * 1048576.0) as u64 {
+                error!(
+                    "Attachment to big! {size} > {max}",
+                    size = size,
+                    max = CONFIG.max_attachment_size_mb * 1048576.0
+                );
+
                 return Err(ServiceError::Conflict("Attachment to big!".to_string()));
             }
 
@@ -180,6 +223,7 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
         attachment = Some(file_collection);
     }
 
+    // set subject if available
     let mut subject = match ARGS.subject.clone() {
         Some(s) => s,
         None => "No Subject".to_string(),
@@ -191,6 +235,7 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
                 recipient = CONFIG.mail.alias.clone();
             }
 
+            // set text if available or read from stdin
             if let Some(text) = &ARGS.text {
                 let msg = Msg::new(None, recipient.clone(), subject, text.clone(), attachment);
 
@@ -199,13 +244,18 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
                 let stdin = io::stdin();
                 let mut stdin_text = vec![];
 
+                // read stdin line by line and ignore lines that starts with IGNORE_LINES
+                // extract subject and recipient from stdin
                 for line in stdin.lock().lines() {
                     let line = line?;
                     if line.starts_with("Subject:") {
                         subject = line.split_once(": ").unwrap().1.to_string();
-                    }
-
-                    if !(ignore_start(&line) || stdin_text.is_empty() && line.is_empty()) {
+                    } else if line.starts_with("To:") {
+                        let res = line.split_once(": ").unwrap().1.to_string();
+                        if res.contains('@') {
+                            recipient = res;
+                        }
+                    } else if !(ignore_start(&line) || stdin_text.is_empty() && line.is_empty()) {
                         stdin_text.push(line);
                     }
                 }
@@ -231,6 +281,7 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
     Ok(())
 }
 
+/// Check if line starts with IGNORE_LINES
 fn ignore_start(input: &str) -> bool {
     for ignore_line in IGNORE_LINES.iter() {
         if input.starts_with(ignore_line) {

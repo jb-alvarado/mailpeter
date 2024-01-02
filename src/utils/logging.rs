@@ -12,11 +12,28 @@ use log::LevelFilter;
 use crate::utils::errors::ServiceError;
 use crate::CONFIG;
 
+/// The **LogFormat** struct is a custom log record formatter. It has two fields: **display_line_level**
+/// and **time_type**. The **display_line_level** field is a **LevelFilter** that determines the minimum
+/// level of log messages that should include the line number. The **time_type** field is a **TimeType**
+///  that determines whether the timestamp in the log messages should be in local time or UTC.
 pub struct LogFormat {
     pub display_line_level: LevelFilter,
     pub time_type: TimeType,
 }
 
+/// The **LogFormat** struct implements the RecordFormat trait from the **fast_log** crate. This trait
+/// requires a **do_format** method that formats a **FastLogRecord** into a string.
+///
+/// The **do_format** method first checks if the **log_to_file** configuration option is enabled. If it
+/// is, it formats the timestamp of the log record into a string. The format of the timestamp
+/// depends on the **time_type** field. If **time_type** is **TimeType::Local**, the timestamp is converted
+/// to local time. If **time_type** is **TimeType::Utc**, the timestamp is kept in UTC. The formatted
+/// timestamp is then added to the beginning of the log message.
+///
+/// The method then checks the level of the log record. If the level is **LevelFilter::Trace**, it
+/// includes the file name and line number in the log message. This is useful for debugging, as
+/// it allows you to see exactly where the log message was generated. If the level is not
+/// **LevelFilter::Trace**, it only includes the level and the message in the log message.
 impl RecordFormat for LogFormat {
     fn do_format(&self, arg: &mut FastLogRecord) {
         match &arg.command {
@@ -54,6 +71,8 @@ impl RecordFormat for LogFormat {
     }
 }
 
+/// The new method is a constructor for the **LogFormat** struct. It returns a new **LogFormat** with
+/// **display_line_level** set to **LevelFilter::Debug** and **time_type** set to the default **TimeType**.
 impl LogFormat {
     pub fn new() -> Self {
         Self {
@@ -74,6 +93,8 @@ impl Default for LogFormat {
     }
 }
 
+/// The **log_path** function returns the path to the log file. It first checks if the
+/// **/var/log/mailpeter**, then fallbacks to **./logs** and finally to **./mailpeter.log**.
 fn log_path() -> String {
     if Path::new("/var/log/mailpeter").is_dir() {
         return "/var/log/mailpeter/mailpeter.log".to_string();
@@ -86,6 +107,14 @@ fn log_path() -> String {
     "./mailpeter.log".to_string()
 }
 
+/// The **init_logger** function initializes the logger. It first creates a **Config** struct with the log level set to the
+/// **log_level** configuration option, the filter set to **ModuleFilter::new_exclude(vec!["rustls".to_string()])**,
+/// and the formatter set to **LogFormat::new().set_display_line_level(CONFIG.log_level)**. It then checks if
+/// **log_to_file** is enabled. If it is, it adds a file appender to the config. The file appender has the
+/// path returned by **log_path**, the max log file size in megabytes set to the **log_size_mb** configuration
+/// option, the max number of log files set to the **log_keep_count** configuration option, and the
+/// **GZipPacker** plugin. If **log_to_file** is not enabled, it adds a console appender to the config.
+/// Finally, it initializes the logger with the config.
 pub fn init_logger() -> Result<(), ServiceError> {
     let mut mail_config = Config::new()
         .chan_len(Some(100000))

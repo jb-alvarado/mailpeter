@@ -28,6 +28,7 @@ async fn main() -> std::io::Result<()> {
     init_logger()?;
 
     if ARGS.subject.is_some() || ARGS.full_name.is_some() {
+        // send mails from CLI
         if let Err(e) = cli_sender().await {
             eprintln!("{e}");
         }
@@ -36,6 +37,7 @@ async fn main() -> std::io::Result<()> {
     }
 
     let addr_port = match &ARGS.listen {
+        // get listening IP first from arguments, then from config
         Some(ip) => ip,
         None => &CONFIG.listening_on,
     };
@@ -52,6 +54,7 @@ async fn main() -> std::io::Result<()> {
             limit = CONFIG.limit_request_seconds;
         }
 
+        // configure rate limit
         let governor_conf = GovernorConfigBuilder::default()
             .per_second(limit)
             .burst_size(1)
@@ -67,14 +70,17 @@ async fn main() -> std::io::Result<()> {
                     Governor::new(&governor_conf),
                 ))
                 .wrap(middleware::Logger::new(
+                    // custom logging format to get real IP behind proxy
                     "%{r}a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T",
                 ));
 
             if CONFIG.routes.contains(&"text_only".to_string()) {
+                // activate route for text and html messages, accept json format
                 app = app.service(post_mail);
             }
 
             if CONFIG.routes.contains(&"with_attachments".to_string()) {
+                // activate route with attachment support, accept multipart/form-data format
                 app = app.service(put_mail_attachment);
             }
 

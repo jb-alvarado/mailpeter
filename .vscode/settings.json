@@ -1,6 +1,13 @@
 {
     "cSpell.words": [
+        "actix",
+        "appender",
+        "formated",
         "mailpeter",
+        "Referer",
+        "rustls",
+        "sendmail",
+        "singlepart",
         "starttls"
     ]
 }

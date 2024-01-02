@@ -6,6 +6,8 @@ use toml;
 
 use crate::utils::errors::ServiceError;
 
+/// Config structs
+
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub listening_on: String,
@@ -43,6 +45,7 @@ pub struct Recipients {
     pub message: String,
 }
 
+/// Deserialize log level from string
 pub fn string_to_log_level<'de, D>(deserializer: D) -> Result<LevelFilter, D::Error>
 where
     D: Deserializer<'de>,
@@ -60,6 +63,7 @@ where
     }
 }
 
+/// Get config file path, fallback to different locations
 pub fn config_path(path: &Option<String>) -> String {
     if let Some(p) = path {
         return p.clone();
@@ -76,6 +80,7 @@ pub fn config_path(path: &Option<String>) -> String {
     "./assets/mailpeter.toml".to_string()
 }
 
+/// read config from file
 pub fn read_config(path: &Option<String>) -> Result<Config, ServiceError> {
     let contents = fs::read_to_string(config_path(path))?;
     let data: Config = toml::from_str(&contents)?;

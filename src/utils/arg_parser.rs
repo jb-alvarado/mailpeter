@@ -1,5 +1,6 @@
 use clap::Parser;
 
+/// Define the command line arguments
 #[derive(Parser, Debug, Clone)]
 #[clap(version,
     about = "Rust Contact API",
