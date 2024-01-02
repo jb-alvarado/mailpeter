@@ -10,7 +10,7 @@ use actix_governor::{
 use actix_web::{
     dev::ServiceRequest, http::header::ContentType, web, HttpResponse, HttpResponseBuilder,
 };
-use log::error;
+use log::{error, trace};
 
 /// This struct doesn't have any fields, it's just a marker that implements the **KeyExtractor** trait.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -53,6 +53,8 @@ impl KeyExtractor for IpExtractor {
             .app_data::<web::Data<IpAddr>>()
             .map(|ip| ip.get_ref().to_owned())
             .unwrap_or_else(|| IpAddr::from_str("0.0.0.0").unwrap());
+
+        trace!("Reverse proxy IP: {:?}", reverse_proxy_ip);
 
         let peer_ip = req.peer_addr().map(|socket| socket.ip());
         let connection_info = req.connection_info();

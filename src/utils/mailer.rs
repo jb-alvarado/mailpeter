@@ -14,7 +14,7 @@ use lettre::{
     transport::smtp::authentication::Credentials,
     AsyncFileTransport, AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
 };
-use log::error;
+use log::{error, trace};
 use serde::{Deserialize, Serialize};
 
 use crate::utils::errors::ServiceError;
@@ -49,7 +49,7 @@ const IGNORE_LINES: [&str; 9] = [
 /// * **new** - The constructor for the struct
 /// * **content_type** - Returns the content type of the mail text
 /// * **default** - Returns the default struct
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Msg {
     pub attachment: Option<Vec<(String, Vec<u8>)>>,
     #[serde(skip_deserializing)]
@@ -150,6 +150,7 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
         for file in files {
             let mime_type = match infer::get(&file.1) {
                 Some(kind) => kind.mime_type(),
+                // application/octet-stream is the default mime type
                 None => "application/octet-stream",
             };
 
@@ -171,6 +172,8 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
     };
 
     let mailer = transporter?.credentials(credentials).build();
+
+    trace!("Mail: {mail:?}");
 
     mailer.send(mail.clone()).await?;
 
@@ -267,6 +270,8 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
                     stdin_text.join("\n"),
                     attachment,
                 );
+
+                trace!("Msg: {msg:?}");
 
                 send(msg).await?;
             }

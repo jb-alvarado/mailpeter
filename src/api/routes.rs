@@ -1,7 +1,7 @@
 use actix_multipart::Multipart;
 use actix_web::{post, put, web, Responder};
 use futures_util::TryStreamExt as _;
-use log::error;
+use log::{error, trace};
 
 use crate::utils::{
     errors::ServiceError,
@@ -24,6 +24,7 @@ pub async fn post_mail(
     mut data: web::Json<Msg>,
 ) -> Result<impl Responder, ServiceError> {
     data.direction = Some(direction.into_inner());
+    trace!("Msg: {:?}", data.clone());
 
     match send(data.into_inner()).await {
         Ok(_) => Ok("Send success!"),
@@ -101,6 +102,8 @@ pub async fn put_mail_attachment(
         text,
         Some(files),
     );
+
+    trace!("Msg: {msg:?}");
 
     match send(msg).await {
         Ok(_) => Ok("Send success!"),

@@ -10,7 +10,7 @@ use fast_log::{
 use log::LevelFilter;
 
 use crate::utils::errors::ServiceError;
-use crate::CONFIG;
+use crate::{ARGS, CONFIG};
 
 /// The **LogFormat** struct is a custom log record formatter. It has two fields: **display_line_level**
 /// and **time_type**. The **display_line_level** field is a **LevelFilter** that determines the minimum
@@ -116,9 +116,26 @@ fn log_path() -> String {
 /// **GZipPacker** plugin. If **log_to_file** is not enabled, it adds a console appender to the config.
 /// Finally, it initializes the logger with the config.
 pub fn init_logger() -> Result<(), ServiceError> {
+    let level = if let Some(level) = &ARGS.level {
+        match level.to_lowercase().as_str() {
+            "debug" => LevelFilter::Debug,
+            "error" => LevelFilter::Error,
+            "info" => LevelFilter::Info,
+            "trace" => LevelFilter::Trace,
+            "warning" => LevelFilter::Warn,
+            "off" => LevelFilter::Off,
+            _ => {
+                eprintln!("Log level not exists! Fallback to debug.");
+                LevelFilter::Debug
+            }
+        }
+    } else {
+        CONFIG.log_level
+    };
+
     let mut mail_config = Config::new()
         .chan_len(Some(100000))
-        .level(CONFIG.log_level)
+        .level(level)
         .filter(ModuleFilter::new_exclude(vec!["rustls".to_string()]))
         .format(LogFormat::new().set_display_line_level(CONFIG.log_level));
 

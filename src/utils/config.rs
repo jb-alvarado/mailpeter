@@ -1,6 +1,6 @@
 use std::{fs, path::Path};
 
-use log::LevelFilter;
+use log::{debug, LevelFilter};
 use serde::{de, Deserialize, Deserializer};
 use toml;
 
@@ -82,7 +82,10 @@ pub fn config_path(path: &Option<String>) -> String {
 
 /// read config from file
 pub fn read_config(path: &Option<String>) -> Result<Config, ServiceError> {
-    let contents = fs::read_to_string(config_path(path))?;
+    let config_file = config_path(path);
+    debug!("Read config from: {}", config_file);
+
+    let contents = fs::read_to_string(config_file)?;
     let data: Config = toml::from_str(&contents)?;
 
     Ok(data)
