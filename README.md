@@ -1,8 +1,8 @@
 # mailpeter
 
-Simple mailer and API for contact forms.
+Simple CLI mailer and HTTP API for contact forms.
 
-**Warning: This project is in a very early stage, do not use it in production!**
+**The project is still at an early stage, use it with caution!**
 
 ## Configuration
 
@@ -72,7 +72,9 @@ Other options are:
 Options:
   -A, --attachment [<ATTACHMENT>...]  Path to attachment file
   -c, --config <CONFIG>               Path to config
+  -F, --full-name <FULL_NAME>         Set the sender full name, this override From header
   -l, --listen <LISTEN>               Listen on IP:PORT, like: 127.0.0.1:8989
+  -L, --level <LEVEL>                 Log level, like: debug, info, warn, error, off
   -s, --subject <SUBJECT>             Mail subject for command line usage
   -t, --text <TEXT>                   Mail text for command line usage, stdin without -t work too
   -h, --help                          Print help
