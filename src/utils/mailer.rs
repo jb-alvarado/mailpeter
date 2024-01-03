@@ -15,6 +15,7 @@ use lettre::{
     AsyncFileTransport, AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
 };
 use log::{error, trace};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::utils::errors::ServiceError;
@@ -66,6 +67,9 @@ pub struct Msg {
 /// `text` field as a `Dom` object (presumably representing a Document Object Model). If the parsing
 /// is successful and the `Dom` object has exactly one child that contains text, it returns `TEXT_PLAIN`
 /// as the content type. Otherwise, it returns `TEXT_HTML`. If the parsing fails, it also returns `TEXT_PLAIN`.
+///
+/// The `is_spam` method returns true if the `text` or `subject` fields contain any of the words in the
+/// `block_words` field of the `CONFIG` object.
 impl Msg {
     pub fn new(
         direction: Option<String>,
@@ -94,6 +98,20 @@ impl Msg {
             }
             Err(_) => header::ContentType::TEXT_PLAIN,
         }
+    }
+
+    pub fn is_spam(&self) -> bool {
+        let mut spam = false;
+
+        for word in &CONFIG.mail.block_words {
+            let re = Regex::new(&format!(r"\b{}\b", word)).unwrap();
+            if re.is_match(&self.subject) || re.is_match(&self.text) {
+                spam = true;
+                break;
+            }
+        }
+
+        spam
     }
 }
 

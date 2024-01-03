@@ -21,6 +21,9 @@ pub enum ServiceError {
 
     #[display(fmt = "ServiceUnavailable: {_0}")]
     ServiceUnavailable(String),
+
+    #[display(fmt = "UnprocessableEntity: {_0}")]
+    UnprocessableEntity(String),
 }
 
 impl ResponseError for ServiceError {
@@ -34,6 +37,9 @@ impl ResponseError for ServiceError {
             ServiceError::NoContent(ref message) => HttpResponse::NoContent().json(message),
             ServiceError::ServiceUnavailable(ref message) => {
                 HttpResponse::ServiceUnavailable().json(message)
+            }
+            ServiceError::UnprocessableEntity(ref message) => {
+                HttpResponse::UnprocessableEntity().json(message)
             }
         }
     }

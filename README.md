@@ -26,6 +26,11 @@ user = "info@example.org"
 password = "super-secure-mail-password"
 starttls = true
 alias = ""                                  # Send to an alias, useful for system mail if the recipient is root, for example.
+block_words = [
+    "https?://",
+    "selling",
+    "holiday",
+]                                          # Block mails with these words in the subject or mail body, regex is supported.
 
 [[mail.recipients]]
 direction = "contact"
@@ -60,6 +65,20 @@ curl -i -X PUT -H "Content-Type: multipart/form-data" \
   -F text="Have you seen this files?" \
   -F "file=@/home/user/Documents/my-contract.pdf" \
   http://127.0.0.1:8989/mail/contact/
+```
+
+## Spam protection
+
+mailpeter can block messages based on keywords in subject or body. Add your words or regex to the `block_words` list in the mail section.
+For example:
+
+```TOML
+block_words = [
+    "https?://", # Block email with any http or https link.
+    "\\@",       # Block email that contains email addresses.
+    "selling",   # Block email that contains the word "selling".
+    "holiday",   # Block email that contains the word "holiday".
+]
 ```
 
 ## Run from CLI

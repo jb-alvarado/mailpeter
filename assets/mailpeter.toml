@@ -1,13 +1,13 @@
-listening_on = "127.0.0.1:8989"             # Address to listening on.
-log_keep_count = 10                         # How many log files should be kept until they are removed from the system.
-log_level = "debug"                         # What level to log.
-log_size_mb = 1                             # The size of the log file until a new log file is created.
-log_to_file = false                         # Log to file, or to console.
-reverse_proxy_ip = "127.0.0.1"              # IP from reverse proxy, I exists
-limit_request_seconds = 30                  # Limit the requests to protect from spamming. 0 for disable rate limit.
-max_attachment_size_mb = 5.0                # Maximum size fro attachments.
-routes = ["text_only", "with_attachments"]  # Which routes should be provided.
-mail_archive = "/var/mail/mailpeter"        # Backup mails in folder, leave it empty for no backup.
+listening_on = "127.0.0.1:8989"            # Address to listening on.
+log_keep_count = 10                        # How many log files should be kept until they are removed from the system.
+log_level = "debug"                        # What level to log.
+log_size_mb = 1                            # The size of the log file until a new log file is created.
+log_to_file = false                        # Log to file, or to console.
+reverse_proxy_ip = "127.0.0.1"             # IP from reverse proxy, I exists
+limit_request_seconds = 30                 # Limit the requests to protect from spamming. 0 for disable rate limit.
+max_attachment_size_mb = 5.0               # Maximum size fro attachments.
+routes = ["text_only", "with_attachments"] # Which routes should be provided.
+mail_archive = "/var/mail/mailpeter"       # Backup mails in folder, leave it empty for no backup.
 
 [mail]
 smtp = ""
@@ -15,7 +15,12 @@ port = 465
 user = ""
 password = ""
 starttls = false
-alias = ""                                  # Send to an alias, useful for system mail if the recipient is root, for example.
+alias = ""                                 # Send to an alias, useful for system mail if the recipient is root, for example.
+block_words = [
+    "https?://",
+    "selling",
+    "holiday",
+]                                          # Block mails with these words in the subject or mail body, regex is supported.
 
 [[mail.recipients]]
 direction = "contact"

@@ -1,13 +1,18 @@
 {
     "cSpell.words": [
+        "aarch",
         "actix",
         "appender",
+        "fastdate",
         "formated",
+        "lettre",
         "mailpeter",
+        "postinst",
         "Referer",
         "rustls",
         "sendmail",
         "singlepart",
-        "starttls"
+        "starttls",
+        "tokio"
     ]
 }

@@ -136,7 +136,11 @@ pub fn init_logger() -> Result<(), ServiceError> {
     let mut mail_config = Config::new()
         .chan_len(Some(100000))
         .level(level)
-        .filter(ModuleFilter::new_exclude(vec!["rustls".to_string()]))
+        .filter(ModuleFilter::new_exclude(vec![
+            "rustls".to_string(),
+            "hyper".to_string(),
+            "mio".to_string(),
+        ]))
         .format(LogFormat::new().set_display_line_level(CONFIG.log_level));
 
     if CONFIG.log_to_file {

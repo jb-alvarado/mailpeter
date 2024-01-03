@@ -32,6 +32,7 @@ pub struct Mail {
     pub password: String,
     pub starttls: bool,
     pub alias: String,
+    pub block_words: Vec<String>,
     pub recipients: Vec<Recipients>,
 }
 

@@ -21,17 +21,21 @@ use crate::utils::{
 #[post("/mail/{direction}/")]
 pub async fn post_mail(
     direction: web::Path<String>,
-    mut data: web::Json<Msg>,
+    mut msg: web::Json<Msg>,
 ) -> Result<impl Responder, ServiceError> {
-    data.direction = Some(direction.into_inner());
-    trace!("Msg: {:?}", data.clone());
+    msg.direction = Some(direction.into_inner());
 
-    match send(data.into_inner()).await {
+    trace!("Msg: {:?}", msg.clone());
+
+    if msg.is_spam() {
+        return Err(ServiceError::UnprocessableEntity(
+            "Message contains blocked words".to_string(),
+        ));
+    }
+
+    match send(msg.into_inner()).await {
         Ok(_) => Ok("Send success!"),
-        Err(e) => {
-            error!("{e:?}");
-            Err(ServiceError::InternalServerError)
-        }
+        Err(_) => Err(ServiceError::InternalServerError),
     }
 }
 
@@ -105,11 +109,14 @@ pub async fn put_mail_attachment(
 
     trace!("Msg: {msg:?}");
 
+    if msg.is_spam() {
+        return Err(ServiceError::UnprocessableEntity(
+            "Message contains blocked words".to_string(),
+        ));
+    }
+
     match send(msg).await {
         Ok(_) => Ok("Send success!"),
-        Err(e) => {
-            error!("{e:?}");
-            Err(ServiceError::InternalServerError)
-        }
+        Err(_) => Err(ServiceError::InternalServerError),
     }
 }
