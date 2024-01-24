@@ -34,10 +34,12 @@ block_words = [
 
 [[mail.recipients]]
 direction = "contact"
+allow_html = false                         # Send message as text (false), or allow html message.
 mails = ["info@example.org", "office@example.org"]
 
 [[mail.recipients]]
 direction = "order"
+allow_html = true
 mails = ["shop@example.org"]
 ```
 
