@@ -39,6 +39,7 @@ pub struct Mail {
 #[derive(Debug, Deserialize)]
 pub struct Recipients {
     pub direction: String,
+    pub allow_html: bool,
     pub mails: Vec<String>,
     #[serde(skip_deserializing)]
     pub subject: String,

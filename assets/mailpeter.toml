@@ -24,4 +24,5 @@ block_words = [
 
 [[mail.recipients]]
 direction = "contact"
+allow_html = false                         # Send message as text (false), or allow html message.
 mails = []

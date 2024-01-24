@@ -101,6 +101,7 @@ pub async fn put_mail_attachment(
 
     let msg = Msg::new(
         Some(direction.into_inner()),
+        false,
         mail,
         subject,
         text,

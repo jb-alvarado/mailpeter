@@ -17,6 +17,7 @@ use lettre::{
 use log::{error, trace};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use voca_rs::Voca;
 
 use crate::utils::errors::ServiceError;
 use crate::{ARGS, CONFIG};
@@ -55,6 +56,8 @@ pub struct Msg {
     pub attachment: Option<Vec<(String, Vec<u8>)>>,
     #[serde(skip_deserializing)]
     pub direction: Option<String>,
+    #[serde(skip_deserializing)]
+    pub allow_html: bool,
     pub mail: String,
     pub subject: String,
     pub text: String,
@@ -73,6 +76,7 @@ pub struct Msg {
 impl Msg {
     pub fn new(
         direction: Option<String>,
+        allow_html: bool,
         mail: String,
         subject: String,
         text: String,
@@ -80,6 +84,7 @@ impl Msg {
     ) -> Self {
         Self {
             attachment,
+            allow_html,
             direction,
             mail,
             subject,
@@ -90,7 +95,8 @@ impl Msg {
     pub fn content_type(&self) -> header::ContentType {
         match Dom::parse(&self.text) {
             Ok(dom) => {
-                if dom.children.len() == 1 && dom.children[0].text().is_some() {
+                if (dom.children.len() == 1 && dom.children[0].text().is_some()) || !self.allow_html
+                {
                     return header::ContentType::TEXT_PLAIN;
                 }
 
@@ -121,6 +127,7 @@ impl Default for Msg {
     fn default() -> Self {
         Self {
             attachment: None,
+            allow_html: false,
             direction: None,
             mail: "my@mail.org".to_string(),
             subject: "My Subject".to_string(),
@@ -130,7 +137,7 @@ impl Default for Msg {
 }
 
 /// Take Msg object and send it to the mail server
-pub async fn send(msg: Msg) -> Result<(), ServiceError> {
+pub async fn send(mut msg: Msg) -> Result<(), ServiceError> {
     let mut message = Message::builder().subject(&msg.subject);
 
     // full_name comes mostly from system mails and it is implemented to be compatible with sendmail
@@ -149,6 +156,8 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
 
         for recipient in &CONFIG.mail.recipients {
             if Some(&recipient.direction) == msg.direction.as_ref() {
+                msg.allow_html = recipient.allow_html;
+
                 for mail in &recipient.mails {
                     message = message.to(mail.parse()?);
                 }
@@ -156,11 +165,17 @@ pub async fn send(msg: Msg) -> Result<(), ServiceError> {
         }
     }
 
+    let message_text = if msg.allow_html {
+        msg.text.clone()
+    } else {
+        msg.text._strip_tags()
+    };
+
     // create multipart mail to support attachments
     let mut part = MultiPart::mixed().singlepart(
         SinglePart::builder()
             .header(msg.content_type())
-            .body(msg.text),
+            .body(message_text),
     );
 
     // add attachments to mail if available
@@ -258,7 +273,14 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
 
             // set text if available or read from stdin
             if let Some(text) = &ARGS.text {
-                let msg = Msg::new(None, recipient.clone(), subject, text.clone(), attachment);
+                let msg = Msg::new(
+                    None,
+                    true,
+                    recipient.clone(),
+                    subject,
+                    text.clone(),
+                    attachment,
+                );
 
                 send(msg).await?;
             } else {
@@ -283,6 +305,7 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
 
                 let msg = Msg::new(
                     None,
+                    true,
                     recipient.clone(),
                     subject,
                     stdin_text.join("\n"),
