@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+target=$1
+
 if [[ -n $target ]]; then
     targets=($target)
 else

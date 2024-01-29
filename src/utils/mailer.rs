@@ -233,6 +233,10 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
     let mut attachment = None;
     let mut recipient = ARGS.recipient.clone();
 
+    if ARGS.text {
+        recipient = Some("--".to_string())
+    }
+
     if let Some(mut files) = ARGS.attachment.clone() {
         let mut file_collection = vec![];
         let mut size = 0;
@@ -280,7 +284,7 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
             }
 
             // set text if available or read from stdin
-            if let Some(text) = &ARGS.text {
+            if let Some(text) = &ARGS.message {
                 let msg = Msg::new(
                     None,
                     true,

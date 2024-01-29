@@ -97,7 +97,7 @@ Options:
   -l, --listen <LISTEN>               Listen on IP:PORT, like: 127.0.0.1:8989
   -L, --level <LEVEL>                 Log level, like: debug, info, warn, error, off
   -s, --subject <SUBJECT>             Mail subject for command line usage
-  -t, --text <TEXT>                   Mail text for command line usage, stdin without -t work too
+      --message <MESSAGE>             Mail text for command line usage, stdin work too
   -h, --help                          Print help
   -V, --version                       Print version
 ```

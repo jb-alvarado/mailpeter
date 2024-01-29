@@ -44,11 +44,14 @@ pub struct Args {
     pub subject: Option<String>,
 
     #[clap(
-        short,
         long,
         help = "Mail text for command line usage, stdin without -t work too"
     )]
-    pub text: Option<String>,
+    pub message: Option<String>,
+
+    // Hidden unused parameter for mailx compatibility
+    #[clap(short, long, help = "Read recipient from message header")]
+    pub text: bool,
 
     // Hidden unused parameter for sendmail compatibility
     #[clap(short, long, hide = true)]
