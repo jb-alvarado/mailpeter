@@ -150,7 +150,15 @@ pub async fn send(mut msg: Msg) -> Result<(), ServiceError> {
 
     // directions are used to send mails to different recipients and comes from API routes
     if msg.direction.is_none() {
-        message = message.to(msg.mail.parse()?);
+        if msg.mail.contains(',') {
+            for res in msg.mail.split(',') {
+                let r = res.trim();
+
+                message = message.to(r.parse()?);
+            }
+        } else {
+            message = message.to(msg.mail.parse()?);
+        }
     } else {
         message = message.reply_to(msg.mail.parse()?);
 
