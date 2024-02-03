@@ -33,14 +33,16 @@ block_words = [
 ]                                          # Block mails with these words in the subject or mail body, regex is supported.
 
 [[mail.recipients]]
-direction = "contact"
 allow_html = false                         # Send message as text (false), or allow html message.
+direction = "contact"
 mails = ["info@example.org", "office@example.org"]
+send_copy = false
 
 [[mail.recipients]]
-direction = "order"
 allow_html = true
+direction = "order"
 mails = ["shop@example.org"]
+send_copy = true                           # Send a copy from the message to the user.
 ```
 
 Run mailpeter with: `mailpeter -l 127.0.0.1:8989`
@@ -62,11 +64,11 @@ Post request to: `http://127.0.0.1:8989/mail/contact/`
 
 ```BASH
 curl -i -X PUT -H "Content-Type: multipart/form-data" \
-  -F mail=me@example.org \
-  -F subject="my subject" \
-  -F text="Have you seen this files?" \
-  -F "file=@/home/user/Documents/my-contract.pdf" \
-  http://127.0.0.1:8989/mail/contact/
+    -F mail=me@example.org \
+    -F subject="my subject" \
+    -F text="Have you seen this files?" \
+    -F "file=@/home/user/Documents/my-contract.pdf" \
+    http://127.0.0.1:8989/mail/contact/
 ```
 
 ## Spam protection

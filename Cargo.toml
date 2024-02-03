@@ -2,7 +2,7 @@
 name = "mailpeter"
 description = "Simple mailer and API for contact forms"
 readme = "README.md"
-version = "0.8.1"
+version = "0.9.0"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/jb-alvarado/mailpeter"

@@ -23,6 +23,7 @@ block_words = [
 ]                                          # Block mails with these words in the subject or mail body, regex is supported.
 
 [[mail.recipients]]
-direction = "contact"
 allow_html = false                         # Send message as text (false), or allow html message.
+direction = "contact"
 mails = []
+send_copy = true                           # Send a copy from the message to the user.

@@ -61,6 +61,8 @@ pub struct Msg {
     pub mail: String,
     pub subject: String,
     pub text: String,
+    #[serde(skip_deserializing)]
+    pub send_copy: bool,
 }
 
 /// The `Msg` struct has an associated `new` function, which is a constructor that takes values for
@@ -89,6 +91,7 @@ impl Msg {
             mail,
             subject,
             text,
+            send_copy: false,
         }
     }
 
@@ -132,13 +135,41 @@ impl Default for Msg {
             mail: "my@mail.org".to_string(),
             subject: "My Subject".to_string(),
             text: "My Text".to_string(),
+            send_copy: false,
         }
     }
 }
 
+async fn send(message: Message) -> Result<(), ServiceError> {
+    let credentials = Credentials::new(CONFIG.mail.user.clone(), CONFIG.mail.password.clone());
+
+    // create transporter based on starttls configuration
+    let transporter = if CONFIG.mail.starttls {
+        AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&CONFIG.mail.smtp)
+    } else {
+        AsyncSmtpTransport::<Tokio1Executor>::relay(&CONFIG.mail.smtp)
+    };
+
+    let mailer = transporter?.credentials(credentials).build();
+
+    trace!("Mail: {message:?}");
+
+    mailer.send(message.clone()).await?;
+
+    // backup mail to file if mail_archive is set
+    if !CONFIG.mail_archive.is_empty() && Path::new(&CONFIG.mail_archive).is_dir() {
+        let backup = AsyncFileTransport::<Tokio1Executor>::new(Path::new(&CONFIG.mail_archive));
+
+        backup.send(message).await?;
+    }
+
+    Ok(())
+}
+
 /// Take Msg object and send it to the mail server
-pub async fn send(mut msg: Msg) -> Result<(), ServiceError> {
+pub async fn message_worker(mut msg: Msg) -> Result<(), ServiceError> {
     let mut message = Message::builder().subject(&msg.subject);
+    let mut recipients = vec![];
 
     // full_name comes mostly from system mails and it is implemented to be compatible with sendmail
     match &ARGS.full_name {
@@ -165,13 +196,13 @@ pub async fn send(mut msg: Msg) -> Result<(), ServiceError> {
         for recipient in &CONFIG.mail.recipients {
             if Some(&recipient.direction) == msg.direction.as_ref() {
                 msg.allow_html = recipient.allow_html;
-
-                for mail in &recipient.mails {
-                    message = message.to(mail.parse()?);
-                }
+                msg.send_copy = recipient.send_copy;
+                recipients = recipient.mails.clone();
             }
         }
     }
+
+    print!("allow: {}", msg.allow_html);
 
     let message_text = if msg.allow_html {
         msg.text.clone()
@@ -179,15 +210,28 @@ pub async fn send(mut msg: Msg) -> Result<(), ServiceError> {
         msg.text._strip_tags()
     };
 
+    if msg.send_copy {
+        let message_copy = message
+            .clone()
+            .to(msg.mail.parse()?)
+            .header(msg.content_type());
+        let mail = message_copy.body(message_text.clone())?;
+        send(mail).await?;
+    }
+
+    for rec in &recipients {
+        message = message.to(rec.parse()?);
+    }
+
     // create multipart mail to support attachments
     let mut part = MultiPart::mixed().singlepart(
         SinglePart::builder()
             .header(msg.content_type())
-            .body(message_text),
+            .body(message_text.clone()),
     );
 
     // add attachments to mail if available
-    if let Some(files) = msg.attachment {
+    let mail = if let Some(files) = msg.attachment {
         for file in files {
             let mime_type = match infer::get(&file.1) {
                 Some(kind) => kind.mime_type(),
@@ -200,36 +244,19 @@ pub async fn send(mut msg: Msg) -> Result<(), ServiceError> {
 
             part = part.singlepart(attachment);
         }
-    }
 
-    let mail = message.multipart(part)?;
-    let credentials = Credentials::new(CONFIG.mail.user.clone(), CONFIG.mail.password.clone());
-
-    // create transporter based on starttls configuration
-    let transporter = if CONFIG.mail.starttls {
-        AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&CONFIG.mail.smtp)
+        message.multipart(part)?
     } else {
-        AsyncSmtpTransport::<Tokio1Executor>::relay(&CONFIG.mail.smtp)
+        message.header(msg.content_type()).body(message_text)?
     };
 
-    let mailer = transporter?.credentials(credentials).build();
-
-    trace!("Mail: {mail:?}");
-
-    mailer.send(mail.clone()).await?;
-
-    // backup mail to file if mail_archive is set
-    if !CONFIG.mail_archive.is_empty() && Path::new(&CONFIG.mail_archive).is_dir() {
-        let backup = AsyncFileTransport::<Tokio1Executor>::new(Path::new(&CONFIG.mail_archive));
-
-        backup.send(mail).await?;
-    }
+    send(mail).await?;
 
     Ok(())
 }
 
 /// Send mail from command line arguments
-pub async fn cli_sender() -> Result<(), ServiceError> {
+pub async fn cli_message() -> Result<(), ServiceError> {
     let mut attachment = None;
     let mut recipient = ARGS.recipient.clone();
 
@@ -294,7 +321,7 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
                     attachment,
                 );
 
-                send(msg).await?;
+                message_worker(msg).await?;
             } else {
                 let stdin = io::stdin();
                 let mut stdin_text = vec![];
@@ -326,7 +353,7 @@ pub async fn cli_sender() -> Result<(), ServiceError> {
 
                 trace!("Msg: {msg:?}");
 
-                send(msg).await?;
+                message_worker(msg).await?;
             }
         }
         None => {

@@ -5,7 +5,7 @@ use log::{error, trace};
 
 use crate::utils::{
     errors::ServiceError,
-    mailer::{send, Msg},
+    mailer::{message_worker, Msg},
 };
 
 /// This Rust code handles HTTP POST and PUT requests related to sending emails.
@@ -33,7 +33,7 @@ pub async fn post_mail(
         ));
     }
 
-    match send(msg.into_inner()).await {
+    match message_worker(msg.into_inner()).await {
         Ok(_) => Ok("Send success!"),
         Err(_) => Err(ServiceError::InternalServerError),
     }
@@ -116,7 +116,7 @@ pub async fn put_mail_attachment(
         ));
     }
 
-    match send(msg).await {
+    match message_worker(msg).await {
         Ok(_) => Ok("Send success!"),
         Err(_) => Err(ServiceError::InternalServerError),
     }

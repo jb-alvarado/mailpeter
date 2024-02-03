@@ -15,7 +15,7 @@ use utils::{
     config::{read_config, Config},
     ip_extrator::IpExtractor,
     logging::init_logger,
-    mailer::cli_sender,
+    mailer::cli_message,
 };
 
 lazy_static! {
@@ -29,7 +29,7 @@ async fn main() -> std::io::Result<()> {
 
     if ARGS.subject.is_some() || ARGS.full_name.is_some() || ARGS.text {
         // send mails from CLI
-        if let Err(e) = cli_sender().await {
+        if let Err(e) = cli_message().await {
             eprintln!("{e}");
         }
 
