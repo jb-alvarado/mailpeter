@@ -202,8 +202,6 @@ pub async fn message_worker(mut msg: Msg) -> Result<(), ServiceError> {
         }
     }
 
-    print!("allow: {}", msg.allow_html);
-
     let message_text = if msg.allow_html {
         msg.text.clone()
     } else {
